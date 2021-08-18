@@ -1,5 +1,5 @@
 """
-Read all of the reaches from SWORD overlapping with SWOT rivertile file.
+Read reach data from SWOT rivertile file.
 """
 import netCDF4 as nc
 import numpy as np
