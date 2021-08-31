@@ -72,9 +72,14 @@ def compute(reach, reach_height, reach_width, reach_slope):
         momma_H = models['MOMMA']['H']
         momma_Save = models['MOMMA']['Save']
         momma_r = 2
-
-        momma_nb = 0.11 * momma_Save**0.18
-        log_factor = np.log10((momma_H-momma_B)/(reach_height-momma_B))
+        
+        if momma_Save > 0 and momma_H > momma_B and reach_height > momma_B:
+            momma_nb = 0.11 * momma_Save**0.18
+            log_factor = np.log10((momma_H-momma_B)/(reach_height-momma_B))
+        else:
+            momma_nb = MISSING_VALUE_FLT
+            log_factor = MISSING_VALUE_FLT
+            
         if reach_height <= momma_H:
             momma_n = momma_nb*(1+log_factor)
             log_check = log_factor > -1
