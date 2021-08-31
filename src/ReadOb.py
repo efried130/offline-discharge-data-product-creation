@@ -13,6 +13,7 @@ def Rivertile(swot_file):
     rivertile['width'] = dataset['reach']['width'][:].filled(np.nan)
     rivertile['slope'] = dataset['reach']['slope2'][:].filled(np.nan)
     rivertile['nt'] = dataset.dimensions["nt"].size
+    rivertile["time_steps"] = dataset["nt"][:]
  
     dataset.close()
     return rivertile
