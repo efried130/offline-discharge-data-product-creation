@@ -109,7 +109,7 @@ def compute(reach, reach_height, reach_width, reach_slope):
             sads_q = MISSING_VALUE_FLT
             
         if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q]):
-            consensus_q = np.mean([metro_q, bam_q, hivdi_q, momma_q, sads_q])
+            consensus_q = np.median([metro_q, bam_q, hivdi_q, momma_q, sads_q])
         else:
             consensus_q = MISSING_VALUE_FLT
 
