@@ -107,6 +107,11 @@ def compute(reach, reach_height, reach_width, reach_slope):
                 (reach_slope)**(1/2)) / sads_n
         else:
             sads_q = MISSING_VALUE_FLT
+            
+        if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q]):
+            consensus_q = np.mean([metro_q, bam_q, hivdi_q, momma_q, sads_q])
+        else:
+            consensus_q = MISSING_VALUE_FLT
 
         if key == 'constrained':
             outputs['metro_q_c'] = metro_q
@@ -114,12 +119,14 @@ def compute(reach, reach_height, reach_width, reach_slope):
             outputs['hivdi_q_c'] = hivdi_q
             outputs['momma_q_c'] = momma_q
             outputs['sads_q_c'] = sads_q
+            outputs['consensus_q_c'] = consensus_q
         elif key == 'unconstrained':
             outputs['metro_q_uc'] = metro_q
             outputs['bam_q_uc'] = bam_q
             outputs['hivdi_q_uc'] = hivdi_q
             outputs['momma_q_uc'] = momma_q
             outputs['sads_q_uc'] = sads_q
+            outputs['consensus_q_uc'] = consensus_q
     return outputs
 
 def area(observed_height, observed_width, area_fits):
