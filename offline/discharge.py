@@ -72,9 +72,14 @@ def compute(reach, reach_height, reach_width, reach_slope):
         momma_H = models['MOMMA']['H']
         momma_Save = models['MOMMA']['Save']
         momma_r = 2
-
-        momma_nb = 0.11 * momma_Save**0.18
-        log_factor = np.log10((momma_H-momma_B)/(reach_height-momma_B))
+        
+        if momma_Save > 0 and momma_H > momma_B and reach_height > momma_B:
+            momma_nb = 0.11 * momma_Save**0.18
+            log_factor = np.log10((momma_H-momma_B)/(reach_height-momma_B))
+        else:
+            momma_nb = MISSING_VALUE_FLT
+            log_factor = MISSING_VALUE_FLT
+            
         if reach_height <= momma_H:
             momma_n = momma_nb*(1+log_factor)
             log_check = log_factor > -1
@@ -102,6 +107,11 @@ def compute(reach, reach_height, reach_width, reach_slope):
                 (reach_slope)**(1/2)) / sads_n
         else:
             sads_q = MISSING_VALUE_FLT
+            
+        if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q]):
+            consensus_q = np.median([metro_q, bam_q, hivdi_q, momma_q, sads_q])
+        else:
+            consensus_q = MISSING_VALUE_FLT
 
         if key == 'constrained':
             outputs['metro_q_c'] = metro_q
@@ -109,12 +119,14 @@ def compute(reach, reach_height, reach_width, reach_slope):
             outputs['hivdi_q_c'] = hivdi_q
             outputs['momma_q_c'] = momma_q
             outputs['sads_q_c'] = sads_q
+            outputs['consensus_q_c'] = consensus_q
         elif key == 'unconstrained':
             outputs['metro_q_uc'] = metro_q
             outputs['bam_q_uc'] = bam_q
             outputs['hivdi_q_uc'] = hivdi_q
             outputs['momma_q_uc'] = momma_q
             outputs['sads_q_uc'] = sads_q
+            outputs['consensus_q_uc'] = consensus_q
     return outputs
 
 def area(observed_height, observed_width, area_fits):
