@@ -7,10 +7,14 @@ import sys
 import numpy as np
 
 # Local imports
-from src.ReadOb import Rivertile
-from src.ReadPRD import ReachDatabase
-from src.discharge import compute
-from src.WriteQ import write_q
+from offline.ReadOb import Rivertile
+from offline.ReadPRD import ReachDatabase
+from offline.discharge import compute
+from offline.WriteQ import write_q
+
+# Constants
+INPUT = Path("")
+OUTPUT = Path("")
 
 def get_reach_data(reach_json):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
@@ -118,8 +122,6 @@ def main(input, output):
 if __name__ == "__main__":
     from datetime import datetime
     start = datetime.now()
-    input = Path("")
-    output = Path("")
-    main(input, output)
+    main(INPUT, OUTPUT)
     end = datetime.now()
     print(f"Exeuction time: {end - start}")
