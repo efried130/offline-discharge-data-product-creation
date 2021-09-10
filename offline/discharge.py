@@ -8,20 +8,27 @@ MISSING_VALUE_INT4 = -999
 MISSING_VALUE_INT9 = -99999999
 MISSING_VALUE_FLT = -999999999999
 
-def compute(reach, reach_height, reach_width, reach_slope):
+def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
     """Computes the discharge models"""
-    area_fit_outputs = area(
-        reach_height, reach_width, reach['area_fits'])
+    
+    if 'area_fit' in reach.keys():
+        area_fit_outputs = area(
+            reach_height, reach_width, reach['area_fits'])
 
-    d_x_area = area_fit_outputs[0]
-    if d_x_area < -10000000 or np.ma.is_masked(d_x_area):
-        d_x_area = MISSING_VALUE_FLT
+        d_x_area = area_fit_outputs[0]
+        if d_x_area < -10000000 or np.ma.is_masked(d_x_area):
+            d_x_area = MISSING_VALUE_FLT
 
-    d_x_area_u = area_fit_outputs[3]
-    if d_x_area_u < 0 or np.ma.is_masked(d_x_area_u):
-        d_x_area_u = MISSING_VALUE_FLT
+        d_x_area_u = area_fit_outputs[3]
+        if d_x_area_u < 0 or np.ma.is_masked(d_x_area_u):
+            d_x_area_u = MISSING_VALUE_FLT
 
-    outputs = {'d_x_area': d_x_area, 'd_x_area_u': d_x_area_u}
+        outputs = {'d_x_area': d_x_area, 'd_x_area_u': d_x_area_u}
+     
+    else:
+        d_x_area = reach_d_x_area
+        outputs = {'d_x_area': d_x_area}
+           
     for key, models in reach['discharge_models'].items():
 
         metro_ninf = models['MetroMan']['ninf']
