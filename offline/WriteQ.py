@@ -29,8 +29,9 @@ def write_q(output_dir, data_dict):
     d_x_area = out_nc.createVariable("d_x_area", "f8", ("nt",), fill_value=FILL_VALUE)
     d_x_area[:] = np.nan_to_num(data_dict["d_x_area"], copy=True, nan=FILL_VALUE)
 
-    d_x_area_u  = out_nc.createVariable("d_x_area_u", "f8", ("nt",), fill_value=FILL_VALUE)
-    d_x_area_u[:] = np.nan_to_num(data_dict["d_x_area_u"], copy=True, nan=FILL_VALUE)
+    if np.count_nonzero(~np.isnan(data_dict["d_x_area_u"])):
+        d_x_area_u  = out_nc.createVariable("d_x_area_u", "f8", ("nt",), fill_value=FILL_VALUE)
+        d_x_area_u[:] = np.nan_to_num(data_dict["d_x_area_u"], copy=True, nan=FILL_VALUE)
 
     metro_q_c  = out_nc.createVariable("metro_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
     metro_q_c[:] = np.nan_to_num(data_dict["metro_q_c"], copy=True, nan=FILL_VALUE)
