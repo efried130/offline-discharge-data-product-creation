@@ -48,6 +48,9 @@ def write_q(output_dir, data_dict):
     sads_q_c  = out_nc.createVariable("sads_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
     sads_q_c[:] = np.nan_to_num(data_dict["sads_q_c"], copy=True, nan=FILL_VALUE)
 
+    consensus_q_c  = out_nc.createVariable("consensus_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
+    consensus_q_c[:] = np.nan_to_num(data_dict["consensus_q_c"], copy=True, nan=FILL_VALUE)
+
     metro_q_uc  = out_nc.createVariable("metro_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
     metro_q_uc[:] = np.nan_to_num(data_dict["metro_q_uc"], copy=True, nan=FILL_VALUE)
 
@@ -62,6 +65,9 @@ def write_q(output_dir, data_dict):
 
     sads_q_uc  = out_nc.createVariable("sads_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
     sads_q_uc[:] = np.nan_to_num(data_dict["sads_q_uc"], copy=True, nan=FILL_VALUE)
+
+    consensus_q_uc  = out_nc.createVariable("consensus_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
+    consensus_q_uc[:] = np.nan_to_num(data_dict["consensus_q_uc"], copy=True, nan=FILL_VALUE)
 
     out_nc.close()
 

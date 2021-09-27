@@ -1,5 +1,6 @@
 # Standard imports
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -14,11 +15,9 @@ from offline.discharge import compute
 from offline.WriteQ import write_q
 
 # Constants
-# INPUT = Path("")
-# OUTPUT = Path("")
-INPUT = Path("/home/nikki/Documents/confluence/workspace/offline/data/input")
-FLPE_DIR = Path("/home/nikki/Documents/confluence/workspace/offline/data/input/flpe")
-OUTPUT = Path("/home/nikki/Documents/confluence/workspace/offline/data/output")
+INPUT = Path("/mnt/data/input")
+FLPE_DIR = Path("/mnt/data/flpe")
+OUTPUT = Path("/mnt/data/output")
 
 def get_reach_data(reach_json):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
@@ -29,8 +28,7 @@ def get_reach_data(reach_json):
         Path to the file that contains the list of reaches to process
     """
 
-    # index = int(os.environ.get("AWS_BATCH_JOB_ARRAY_INDEX"))
-    index = 13
+    index = int(os.environ.get("AWS_BATCH_JOB_ARRAY_INDEX"))
     with open(reach_json) as json_file:
         data = json.load(json_file)
     return data[index]
@@ -56,11 +54,13 @@ def initialize_data_dict(nt, time_steps, reach_id):
         "hivdi_q_c" : np.repeat(np.nan, nt),
         "momma_q_c" : np.repeat(np.nan, nt),
         "sads_q_c" : np.repeat(np.nan, nt),
+        "consensus_q_c" : np.repeat(np.nan, nt),
         "metro_q_uc" : np.repeat(np.nan, nt),
         "bam_q_uc" : np.repeat(np.nan, nt),
         "hivdi_q_uc" : np.repeat(np.nan, nt),
         "momma_q_uc" : np.repeat(np.nan, nt),
         "sads_q_uc" : np.repeat(np.nan, nt),
+        "consensus_q_uc" : np.repeat(np.nan, nt),
         "nt": nt,
         "reach_id": reach_id,
         "time_steps": time_steps
@@ -87,11 +87,13 @@ def populate_data_array(data_dict, outputs, index):
     data_dict["hivdi_q_c"][index] = outputs["hivdi_q_c"][0] if type(outputs["hivdi_q_c"]) is np.ndarray else outputs["hivdi_q_c"]
     data_dict["momma_q_c"][index] = outputs["momma_q_c"][0] if type(outputs["momma_q_c"]) is np.ndarray else outputs["momma_q_c"]
     data_dict["sads_q_c"][index] = outputs["sads_q_c"][0] if type(outputs["sads_q_c"]) is np.ndarray else outputs["sads_q_c"]
+    data_dict["consensus_q_c"][index] = outputs["consensus_q_c"][0] if type(outputs["consensus_q_c"]) is np.ndarray else outputs["consensus_q_c"]
     data_dict["metro_q_uc"][index] = outputs["metro_q_uc"][0] if type(outputs["metro_q_uc"]) is np.ndarray else outputs["metro_q_uc"]
     data_dict["bam_q_uc"][index] = outputs["bam_q_uc"][0] if type(outputs["bam_q_uc"]) is np.ndarray else outputs["bam_q_uc"]
     data_dict["hivdi_q_uc"][index] = outputs["hivdi_q_uc"][0] if type(outputs["hivdi_q_uc"]) is np.ndarray else outputs["hivdi_q_uc"]
     data_dict["momma_q_uc"][index] = outputs["momma_q_uc"][0] if type(outputs["momma_q_uc"]) is np.ndarray else outputs["momma_q_uc"]
     data_dict["sads_q_uc"][index] = outputs["sads_q_uc"][0] if type(outputs["sads_q_uc"]) is np.ndarray else outputs["sads_q_uc"]
+    data_dict["consensus_q_uc"][index] = outputs["consensus_q_uc"][0] if type(outputs["consensus_q_uc"]) is np.ndarray else outputs["consensus_q_uc"]
 
     # Convert missing values to NaN values
     for k,v in data_dict.items(): 
@@ -130,7 +132,7 @@ def main(input, output):
         if priors["area_fit"]["h_w_nobs"] != -9999:
             outputs = compute(priors, obs['height'][i], obs["width"][i], obs["slope"][i], obs["d_x_area"][i])
             populate_data_array(data_dict, outputs, i)
-    
+
     # Output discharge model values
     write_q(output, data_dict)
 
