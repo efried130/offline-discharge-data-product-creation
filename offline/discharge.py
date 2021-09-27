@@ -13,7 +13,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
     
     if 'area_fit' in reach.keys():
         area_fit_outputs = area(
-            reach_height, reach_width, reach['area_fits'])
+            reach_height, reach_width, reach['area_fit'])
 
         d_x_area = area_fit_outputs[0]
         if d_x_area < -10000000 or np.ma.is_masked(d_x_area):
