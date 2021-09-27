@@ -9,12 +9,16 @@ import numpy as np
 # Local imports
 from offline.ReadOb import Rivertile
 from offline.ReadPRD import ReachDatabase
+from offline.ReadQparams import extract_alg
 from offline.discharge import compute
 from offline.WriteQ import write_q
 
 # Constants
-INPUT = Path("")
-OUTPUT = Path("")
+# INPUT = Path("")
+# OUTPUT = Path("")
+INPUT = Path("/home/nikki/Documents/confluence/workspace/offline/data/input")
+FLPE_DIR = Path("/home/nikki/Documents/confluence/workspace/offline/data/input/flpe")
+OUTPUT = Path("/home/nikki/Documents/confluence/workspace/offline/data/output")
 
 def get_reach_data(reach_json):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
@@ -76,8 +80,8 @@ def populate_data_array(data_dict, outputs, index):
     """
 
     # Insert data
-    data_dict["d_x_area"][index] = outputs["d_x_area"]
-    data_dict["d_x_area_u"][index] = outputs["d_x_area_u"]
+    data_dict["d_x_area"][index] = outputs["d_x_area"] 
+    data_dict["d_x_area_u"][index] = outputs["d_x_area_u"] if "d_x_area_u" in outputs.keys() else None
     data_dict["metro_q_c"][index] = outputs["metro_q_c"][0] if type(outputs["metro_q_c"]) is np.ndarray else outputs["metro_q_c"]
     data_dict["bam_q_c"][index] = outputs["bam_q_c"][0] if type(outputs["bam_q_c"]) is np.ndarray else outputs["bam_q_c"]
     data_dict["hivdi_q_c"][index] = outputs["hivdi_q_c"][0] if type(outputs["hivdi_q_c"]) is np.ndarray else outputs["hivdi_q_c"]
@@ -95,27 +99,38 @@ def populate_data_array(data_dict, outputs, index):
             v[np.isclose(v, -1.00000000e+12)] = np.nan
 
 def main(input, output):
-    """Main function to execute offline discharge product generation and storage."""
+    """Main function to execute offline discharge product generation and storage.
+    
+    Command line arguments:
+    run_type: either `unconstrained` or `constrained` (argument 1)
+    reach_json: title of JSON file that contains reach data (argument 2)
+    """
 
     # Command line arguments
     try:
-        reach_json = input.joinpath(sys.argv[1])
+        run_type = sys.argv[1]
+        reach_json = input.joinpath(sys.argv[2])
     except IndexError:
+        run_type = None
         reach_json = input.joinpath("reaches.json") 
 
     # Input data
     reach_data = get_reach_data(reach_json)
     obs = Rivertile(input / "swot" / reach_data["swot"])
+
     priors = ReachDatabase(input / "sword" / reach_data["sword"], 
         reach_data["reach_id"])
+
+    if run_type:
+        priors["discharge_models"] = extract_alg(FLPE_DIR, reach_data["reach_id"], run_type)
 
     # Compute discharge
     data_dict = initialize_data_dict(obs["nt"], obs["time_steps"], reach_data["reach_id"])
     for i in range(obs["nt"]): 
-        if priors["area_fits"]["h_w_nobs"] != -9999:
-            outputs = compute(priors, obs['height'][i], obs["width"][i], obs["slope"][i])
+        if priors["area_fit"]["h_w_nobs"] != -9999:
+            outputs = compute(priors, obs['height'][i], obs["width"][i], obs["slope"][i], obs["d_x_area"][i])
             populate_data_array(data_dict, outputs, i)
-
+    
     # Output discharge model values
     write_q(output, data_dict)
 
