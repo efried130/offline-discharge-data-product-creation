@@ -10,6 +10,7 @@ def Rivertile(swot_file):
     rivertile = {}
     rivertile['reach_id'] = dataset['reach']['reach_id'][:].filled(np.nan)
     rivertile['height'] = dataset['reach']['wse'][:].filled(np.nan)
+    rivertile['wse_u'] = dataset['reach']['wse_u'][:].filled(np.nan)
     rivertile['width'] = dataset['reach']['width'][:].filled(np.nan)
     rivertile['width_u'] = dataset['reach']['width_u'][:].filled(np.nan)
     rivertile['slope'] = dataset['reach']['slope2'][:].filled(np.nan)
