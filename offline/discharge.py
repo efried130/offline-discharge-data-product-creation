@@ -8,10 +8,13 @@ MISSING_VALUE_INT4 = -999
 MISSING_VALUE_INT9 = -99999999
 MISSING_VALUE_FLT = -999999999999
 
-def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
+def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, height_u, width_u, slope_u, d_x_area_u):
     """Computes the discharge models"""
     
+    slope_u = 1.7*1e-5 # use this for now
+    
     if 'area_fit' in reach.keys():
+        print('computing d_x_area')
         area_fit_outputs = area(
             reach_height, reach_width, reach['area_fit'])
 
@@ -27,28 +30,45 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
      
     else:
         d_x_area = reach_d_x_area
-        outputs = {'d_x_area': d_x_area}
+        outputs = {'d_x_area': d_x_area, 'd_x_area_u': d_x_area_u}
            
     for key, models in reach['discharge_models'].items():
 
         metro_ninf = models['MetroMan']['ninf']
         metro_Abar = models['MetroMan']['Abar']
         metro_p = models['MetroMan']['p']
+        metro_s_u = 0.4 #models['MetroMan']['sbQ_rel']  
 
         if (reach_width > 0 and reach_slope > 0 and metro_Abar+d_x_area >= 0 and
             metro_Abar > 0 and metro_ninf > 0):
-
+            
             metro_n = metro_ninf * (
                 (d_x_area+metro_Abar) / reach_width)**metro_p
             metro_q = (
                 (d_x_area+metro_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) / metro_n
+            
+            A = metro_Abar + d_x_area
+            cd = metro_p * (A/reach_width)
+            metro_width_u = ((5*metro_p**2 * reach_width)/(3*A**2 * \
+                      ((metro_p*reach_width/A)**2 + 1)) - \
+                      1/(3*reach_width) ) * width_u
+            metro_d_x_area_u = 5/(3*A)*((1+cd**-2)**-1 + 1) * d_x_area_u
+            metro_slp_u = slope_u/(2*reach_slope)
+            
+            metro_r_u = np.sqrt(metro_width_u**2 + metro_d_x_area_u**2 + metro_slp_u**2)
+            metro_u = np.sqrt(metro_r_u**2 + metro_s_u**2)
         else:
             metro_q = MISSING_VALUE_FLT
+            metro_u = MISSING_VALUE_FLT
+            metro_s_u = MISSING_VALUE_FLT
+            metro_u = MISSING_VALUE_FLT
+            
 
         # 3: Compute BAM model
         bam_n = models['BAM']['n']
         bam_Abar = models['BAM']['Abar']
+        bam_s_u = 0.4 #models['BAM']['sbQ_rel']   
 
         if (reach_width > 0 and reach_slope > 0 and bam_Abar+d_x_area >= 0 and
             bam_Abar > 0 and bam_n > 0):
@@ -56,13 +76,22 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
             bam_q = (
                 (d_x_area+bam_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) / bam_n
+            bam_width_u = (2*width_u)/(3*reach_width)
+            bam_slp_u = slope_u/(2*reach_slope)
+            bam_d_x_area_u = 5*d_x_area_u / (3*(bam_Abar + d_x_area))
+            bam_r_u = np.sqrt(bam_width_u**2 + bam_slp_u**2 + bam_d_x_area_u**2)
+            bam_u = np.sqrt(bam_r_u**2 + bam_s_u**2) 
         else:
             bam_q = MISSING_VALUE_FLT
+            bam_u = MISSING_VALUE_FLT
+            bam_s_u = MISSING_VALUE_FLT
+            bam_u = MISSING_VALUE_FLT
 
         # 4: Compute HiVDI model
         hivdi_Abar = models['HiVDI']['Abar']
         hivdi_alpha = models['HiVDI']['alpha']
         hivdi_beta = models['HiVDI']['beta']
+        hivdi_s_u = 0.4 #models['HiVDI']['sbQ_rel']   
 
         if (reach_width > 0 and reach_slope > 0 and hivdi_Abar+d_x_area >= 0 and
             hivdi_Abar > 0 and hivdi_alpha > 0):
@@ -71,14 +100,23 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
             hivdi_q = (
                 (d_x_area+hivdi_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) * hivdi_n_inv
+            hivdi_width_u = width_u * (2/3 + hivdi_beta) / reach_width
+            hivdi_slp_u = slope_u/(2*reach_slope)
+            hivdi_d_x_area_u = d_x_area_u * (5/3 + hivdi_beta) / (hivdi_Abar + d_x_area)
+            hivdi_r_u = np.sqrt(hivdi_width_u**2 + hivdi_slp_u**2 + hivdi_d_x_area_u**2) 
+            hivdi_u = np.sqrt(hivdi_r_u**2 + hivdi_s_u**2) 
         else:
             hivdi_q = MISSING_VALUE_FLT
+            hivdi_u = MISSING_VALUE_FLT
+            hivdi_s_u = MISSING_VALUE_FLT
+            hivdi_u = MISSING_VALUE_FLT
 
         # 5: Compute MOMMA model
         momma_B = models['MOMMA']['B']
         momma_H = models['MOMMA']['H']
         momma_Save = models['MOMMA']['Save']
         momma_r = 2
+        momma_s_u = 0.4 #models['MOMMA']['sbQ_rel']  
         
         if momma_Save > 0 and momma_H > momma_B and reach_height > momma_B:
             momma_nb = 0.11 * momma_Save**0.18
@@ -100,20 +138,39 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
             momma_q = (
                 ((reach_height - momma_B)*(momma_r/(1+momma_r)))**(5/3) *
                 reach_width * reach_slope**(1/2)) / momma_n
+            
+            momma_width_u = width_u/reach_width
+            momma_slp_u = slope_u/(2*reach_slope)
+            momma_wse_u = 5*height_u/(3*(reach_height - momma_B))
+            momma_r_u = np.sqrt(momma_width_u**2 + momma_slp_u**2 + momma_wse_u**2)
+            momma_u = np.sqrt(momma_r_u**2 + momma_s_u**2) 
+        
         else:
             momma_q = MISSING_VALUE_FLT
+            momma_u = MISSING_VALUE_FLT
+            momma_s_u = MISSING_VALUE_FLT 
+            momma_u = MISSING_VALUE_FLT
 
         # 6: Compute SADS model
         sads_Abar = models['SADS']['Abar']
         sads_n = models['SADS']['n']
+        sads_s_u = 0.4 #models['SADS']['sbQ_rel']   
 
         if (reach_width > 0 and reach_slope > 0 and sads_Abar+d_x_area >= 0 and
             sads_Abar > 0 and sads_n > 0):
             sads_q = (
                 (d_x_area+sads_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) / sads_n
+            sads_width_u = (2*width_u)/(3*reach_width)
+            sads_slp_u = slope_u/(2*reach_slope)
+            sads_d_x_area_u = 5*d_x_area_u / (3*(sads_Abar + d_x_area))
+            sads_r_u = np.sqrt(sads_width_u**2 + sads_slp_u**2 + sads_d_x_area_u**2)
+            sads_u = np.sqrt(sads_r_u**2 + sads_s_u**2) 
         else:
             sads_q = MISSING_VALUE_FLT
+            sads_u = MISSING_VALUE_FLT
+            sads_s_u = MISSING_VALUE_FLT
+            sads_u = MISSING_VALUE_FLT
             
         if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q]):
             consensus_q = np.median([metro_q, bam_q, hivdi_q, momma_q, sads_q])
@@ -122,17 +179,37 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area):
 
         if key == 'constrained':
             outputs['metro_q_c'] = metro_q
+            outputs['metro_q_c_s_u'] = metro_s_u
+            outputs['metro_q_c_u'] = metro_u
             outputs['bam_q_c'] = bam_q
+            outputs['bam_q_c_s_u'] = bam_s_u
+            outputs['bam_q_c_u'] = bam_u
             outputs['hivdi_q_c'] = hivdi_q
+            outputs['hivdi_q_c_s_u'] = hivdi_s_u
+            outputs['hivdi_q_c_u'] = hivdi_u
             outputs['momma_q_c'] = momma_q
+            outputs['momma_q_c_s_u'] = momma_s_u
+            outputs['momma_q_c_u'] = momma_u
             outputs['sads_q_c'] = sads_q
+            outputs['sads_q_c_s_u'] = sads_s_u
+            outputs['sads_q_c_u'] = sads_u
             outputs['consensus_q_c'] = consensus_q
         elif key == 'unconstrained':
             outputs['metro_q_uc'] = metro_q
+            outputs['metro_q_uc_s_u'] = metro_s_u
+            outputs['metro_q_uc_u'] = metro_u
             outputs['bam_q_uc'] = bam_q
+            outputs['bam_q_uc_s_u'] = bam_s_u
+            outputs['bam_q_uc_u'] = bam_u
             outputs['hivdi_q_uc'] = hivdi_q
+            outputs['hivdi_q_uc_s_u'] = hivdi_s_u
+            outputs['hivdi_q_uc_u'] = hivdi_u
             outputs['momma_q_uc'] = momma_q
+            outputs['momma_q_uc_s_u'] = momma_s_u
+            outputs['momma_q_uc_u'] = momma_u
             outputs['sads_q_uc'] = sads_q
+            outputs['sads_q_uc_s_u'] = sads_s_u
+            outputs['sads_q_uc_u'] = sads_u
             outputs['consensus_q_uc'] = consensus_q
     return outputs
 
