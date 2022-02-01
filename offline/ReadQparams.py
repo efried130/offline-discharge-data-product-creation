@@ -83,8 +83,9 @@ def extract_valid(r_id, run_type, gb_file, hv_file, mo_file, sd_file, mm_file):
     # geobam
     gb = Dataset(gb_file, 'r', format="NETCDF4")
     alg_dict[run_type]['BAM'] = {
-        "n": np.nanmean(np.array(get_gb_data(gb, "logn_man", True))),
-        "Abar": np.array(np.nanmean(np.array(get_gb_data(gb, "A0", False))))
+        "n": np.array(get_gb_data(gb, "logn", "mean", True)),
+        # "Abar": np.array(np.nanmean(np.array(get_gb_data(gb, "A0", False))))
+        "Abar": np.array(1)    # Temp placeholder while work out neoBAM AO calculation
     }
     alg_dict[non_run_type]['BAM'] = {
         "n": non_run_array,
@@ -229,7 +230,7 @@ def indicate_no_data(r_id):
     
     return alg_dict 
 
-def get_gb_data(gb, group, logged):
+def get_gb_data(gb, group, pre, logged):
     """Return geoBAM data as a numpy array.
 
     Parameters
@@ -238,13 +239,15 @@ def get_gb_data(gb, group, logged):
         NetCDF file dataset to extract discharge time series
     group: str
         string name of group to access chains
+    pre: str
+        string prefix of variable name
     logged: bool
         boolean indicating if result is logged
     """
 
-    chain1 = gb[group]["mean_chain1"][:].filled(np.nan)
-    chain2 = gb[group]["mean_chain2"][:].filled(np.nan)
-    chain3 = gb[group]["mean_chain3"][:].filled(np.nan)
+    chain1 = gb[group][f"{pre}1"][:].filled(np.nan)
+    chain2 = gb[group][f"{pre}2"][:].filled(np.nan)
+    chain3 = gb[group][f"{pre}3"][:].filled(np.nan)
     chains = np.vstack((chain1, chain2, chain3))
 
     with warnings.catch_warnings():
