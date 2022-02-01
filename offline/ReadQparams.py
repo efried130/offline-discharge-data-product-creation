@@ -5,6 +5,7 @@ Extract discharge paramaters from Confluence
 from glob import glob
 from pathlib import Path
 import warnings
+import os
 
 # Third-party imports
 from netCDF4 import Dataset
@@ -22,16 +23,21 @@ def extract_alg(alg_dir, r_id, run_type):
     run_type: str
         constrained or unconstrained data product indicator
     """
-    
-    gb_file = alg_dir / 'geobam' / f'{r_id}_geobam.nc'
-    hv_file = alg_dir / 'hivdi' / f'{r_id}_hivdi.nc'
-    mo_file = alg_dir / 'momma' / f'{r_id}_momma.nc'
-    sd_file = alg_dir / 'sad' / f'{r_id}_sad.nc'
-    
-    mm_file = glob(str(alg_dir / 'metroman' / f'*{r_id}*_metroman.nc'))    
+    gb_file = os.path.join(alg_dir,  'geobam', f'{r_id}_geobam.nc')
+    hv_file = os.path.join(alg_dir, 'hivdi', f'{r_id}_hivdi.nc')
+    mo_file = os.path.join(alg_dir, 'momma', f'{r_id}_momma.nc')
+    sd_file = os.path.join(alg_dir, 'sad', f'{r_id}_sad.nc')
+    mm_file = glob(str(alg_dir + '/metroman/' + f'*{r_id}*_metroman.nc')) 
+# temporarily change how to construct paths, below doesn't work for the Python version Rui's using     
+#     gb_file = alg_dir / 'geobam' / f'{r_id}_geobam.nc'
+#     hv_file = alg_dir / 'hivdi' / f'{r_id}_hivdi.nc'
+#     mo_file = alg_dir / 'momma' / f'{r_id}_momma.nc'
+#     sd_file = alg_dir / 'sad' / f'{r_id}_sad.nc'
+#     mm_file = glob(str(alg_dir / 'metroman' / f'*{r_id}*_metroman.nc')) 
     mm_file = Path(mm_file[0]) 
 
-    if gb_file.exists() and hv_file.exists() and mm_file.exists() and mo_file.exists() and sd_file.exists():
+#     if gb_file.exists() and hv_file.exists() and mm_file.exists() and mo_file.exists() and sd_file.exists():
+    if os.path.exists(gb_file) and os.path.exists(hv_file) and os.path.exists(mm_file) and os.path.exists(mo_file) and os.path.exists(sd_file):
         param_dict = extract_valid(r_id, run_type, gb_file, hv_file, mo_file, sd_file, mm_file)
     else:
         param_dict = indicate_no_data(r_id)
@@ -160,69 +166,74 @@ def indicate_no_data(r_id):
     r_id: str
         Unique reach identifier
     """
-    alg_dict= {'discharge_models': 
-                             {'unconstrained':{'MetroMan':{}, 
-                                               'BAM':{}, 
-                                               'HiVDI':{}, 
-                                               'MOMMA':{},
-                                               'SADS':{}}, 
-                              'constrained':{'MetroMan':{}, 
-                                             'BAM':{}, 
-                                             'HiVDI':{}, 
-                                             'MOMMA':{},
-                                             'SADS':{}} }}
+    alg_dict = {
+        'unconstrained':{
+            'MetroMan':{}, 
+            'BAM':{}, 
+            'HiVDI':{}, 
+            'MOMMA':{},
+            'SADS':{}
+        }, 
+        'constrained':{
+            'MetroMan':{}, 
+            'BAM':{}, 
+            'HiVDI':{}, 
+            'MOMMA':{},
+            'SADS':{}
+        } 
+    }
     
     # geobam
-    alg_dict['discharge_models']['unconstrained']['BAM'] = {
+    alg_dict['unconstrained']['BAM'] = {
         "n": np.nan,
         "Abar": np.nan
     }
-    alg_dict['discharge_models']['constrained']['BAM'] = {
+    alg_dict['constrained']['BAM'] = {
         "n": np.nan,
         "Abar": np.nan
     }
 
     # hivdi
-    alg_dict['discharge_models']['unconstrained']['HiVDI'] = {
+    alg_dict['unconstrained']['HiVDI'] = {
         "alpha" : np.nan,  
         "beta" : np.nan,  
         "Abar" : np.nan
     }
-    alg_dict['discharge_models']['constrained']['HiVDI'] = {
+    alg_dict['constrained']['HiVDI'] = {
         "alpha" : np.nan,  
         "beta" : np.nan,  
         "Abar" : np.nan
     }
 
     # momma
-    alg_dict['discharge_models']['unconstrained']['MOMMA'] = {
+    alg_dict['unconstrained']['MOMMA'] = {
         "B" : np.nan,
         "H" : np.nan,
         "Save" : np.nan
     }
-    alg_dict['discharge_models']['constrained']['MOMMA'] = {
+    alg_dict['constrained']['MOMMA'] = {
         "B" : np.nan,
         "H" : np.nan,
         "Save" : np.nan
     }
 
     # sad
-    alg_dict['discharge_models']['unconstrained']['SADS'] = {
+    alg_dict['unconstrained']['SADS'] = {
         "n" : np.nan,
         "Abar" : np.nan
     }
-    alg_dict['discharge_models']['constrained']['SADS'] = {
+    alg_dict['constrained']['SADS'] = {
         "n" : np.nan,
         "Abar" : np.nan
     }
 
     # MetroMan    
-    alg_dict['discharge_models']['unconstrained']['MetroMan'] = {
+    alg_dict['unconstrained']['MetroMan'] = {
          "ninf" : np.nan,
          "p" : np.nan,
          "Abar" : np.nan
     }
-    alg_dict['discharge_models']['constrained']['MetroMan'] = {
+    alg_dict['constrained']['MetroMan'] = {
          "ninf" : np.nan,
          "p" : np.nan,
          "Abar" : np.nan
