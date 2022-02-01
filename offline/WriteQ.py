@@ -24,7 +24,7 @@ def write_q(output_dir, data_dict):
     out_nc.createDimension("nt", data_dict["nt"])
     nt = out_nc.createVariable("nt", "i4", ("nt",))
     nt.units = "time steps"
-    nt[:] = data_dict["time_steps"]
+    nt[:] = list(range(0,data_dict["nt"]))
 
     d_x_area = out_nc.createVariable("d_x_area", "f8", ("nt",), fill_value=FILL_VALUE)
     d_x_area[:] = np.nan_to_num(data_dict["d_x_area"], copy=True, nan=FILL_VALUE)

@@ -18,7 +18,7 @@ def Rivertile(swot_file):
     rivertile['d_x_area'] = dataset['reach']['d_x_area'][:].filled(np.nan)
     rivertile['d_x_area_u'] = dataset['reach']['d_x_area_u'][:].filled(np.nan)
     rivertile['nt'] = dataset.dimensions["nt"].size
-    rivertile["time_steps"] = dataset["nt"][:]
+    rivertile["time_steps"] = nc.chartostring(dataset["observations"][:])
  
     dataset.close()
     return rivertile
