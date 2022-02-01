@@ -27,7 +27,7 @@ def extract_alg(alg_dir, r_id, run_type):
     hv_file = os.path.join(alg_dir, 'hivdi', f'{r_id}_hivdi.nc')
     mo_file = os.path.join(alg_dir, 'momma', f'{r_id}_momma.nc')
     sd_file = os.path.join(alg_dir, 'sad', f'{r_id}_sad.nc')
-    mm_file = glob(str(alg_dir + '/metroman/' + f'*{r_id}*_metroman.nc')) 
+    mm_file = glob(str(alg_dir / 'metroman' / f'*{r_id}*_metroman.nc')) 
 # temporarily change how to construct paths, below doesn't work for the Python version Rui's using     
 #     gb_file = alg_dir / 'geobam' / f'{r_id}_geobam.nc'
 #     hv_file = alg_dir / 'hivdi' / f'{r_id}_hivdi.nc'
