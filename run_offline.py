@@ -130,7 +130,10 @@ def main(input, output):
     data_dict = initialize_data_dict(obs["nt"], obs["time_steps"], reach_data["reach_id"])
     for i in range(obs["nt"]): 
         if priors["area_fit"]["h_w_nobs"] != -9999:
-            outputs = compute(priors, obs['height'][i], obs["width"][i], obs["slope"][i], obs["d_x_area"][i])
+            outputs = compute(priors, obs['height'][i], obs["width"][i], 
+                              obs["slope"][i], obs["d_x_area"][i], obs["wse_u"][i],
+                              obs["width_u"][i], obs["slope_u"][i], 
+                              obs["d_x_area_u"][i])
             populate_data_array(data_dict, outputs, i)
 
     # Output discharge model values
