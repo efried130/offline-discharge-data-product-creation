@@ -15,11 +15,14 @@ from offline.discharge import compute
 from offline.WriteQ import write_q
 
 # Constants
-INPUT = Path("/mnt/data/input")
-FLPE_DIR = Path("/mnt/data/flpe")
-OUTPUT = Path("/mnt/data/output")
+#INPUT = Path("/mnt/data/input")
+#FLPE_DIR = Path("/mnt/data/flpe")
+#OUTPUT = Path("/mnt/data/output")
+INPUT = Path("/Users/mtd/Analysis/SWOT/Discharge/Confluence/verify/offline-discharge/input")
+FLPE_DIR = Path("/Users/mtd/Analysis/SWOT/Discharge/Confluence/verify/moi/output")
+OUTPUT = Path("/Users/mtd/Analysis/SWOT/Discharge/Confluence/verify/offline-discharge/output")
 
-def get_reach_data(reach_json):
+def get_reach_data(reach_json,index_to_run):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
     
     Parameters
@@ -27,8 +30,12 @@ def get_reach_data(reach_json):
     reach_json : str
         Path to the file that contains the list of reaches to process
     """
+   
+    if index_to_run == -235:
+        index = int(os.environ.get("AWS_BATCH_JOB_ARRAY_INDEX"))
+    else:
+        index = index_to_run
 
-    index = int(os.environ.get("AWS_BATCH_JOB_ARRAY_INDEX"))
     with open(reach_json) as json_file:
         data = json.load(json_file)
     return data[index]
@@ -100,7 +107,7 @@ def populate_data_array(data_dict, outputs, index):
         if k != "nt" and k != "reach_id" and k != "time_steps":
             v[np.isclose(v, -1.00000000e+12)] = np.nan
 
-def main(input, output):
+def main(input, output,index_to_run):
     """Main function to execute offline discharge product generation and storage.
     
     Command line arguments:
@@ -117,7 +124,7 @@ def main(input, output):
         reach_json = input.joinpath("reaches.json") 
 
     # Input data
-    reach_data = get_reach_data(reach_json)
+    reach_data = get_reach_data(reach_json,index_to_run)
     obs = Rivertile(input / "swot" / reach_data["swot"])
 
     priors = ReachDatabase(input / "sword" / reach_data["sword"], 
@@ -142,6 +149,13 @@ def main(input, output):
 if __name__ == "__main__":
     from datetime import datetime
     start = datetime.now()
-    main(INPUT, OUTPUT)
+
+    try:
+        index_to_run=int(sys.argv[1]) #integer
+    except IndexError:
+        index_to_run=-235 #AWS
+
+    main(INPUT, OUTPUT,index_to_run)
+
     end = datetime.now()
     print(f"Exeuction time: {end - start}")
