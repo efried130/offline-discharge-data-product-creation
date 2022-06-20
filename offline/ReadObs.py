@@ -14,7 +14,8 @@ def Rivertile(rivertile_path):
     if rivertile_path[-3:] == 'shp':
         dataset = gpd.read_file(rivertile_path)
         rivertile = {}
-        rivertile['reach_id'] = np.array(dataset['reach_id'][:].replace(-9.999999999990000e+11, np.nan))
+        rivertile['reach_id'] = np.array(\
+              dataset['reach_id'][:].replace(-9.999999999990000e+11, np.nan), dtype=float)
         rivertile['height'] = dataset['wse'][:].replace(-9.999999999990000e+11, np.nan)
         rivertile['wse_u'] = dataset['wse_u'][:].replace(-9.999999999990000e+11, np.nan)
         rivertile['width'] = dataset['width'][:].replace(-9.999999999990000e+11, np.nan)
