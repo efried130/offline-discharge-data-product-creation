@@ -14,11 +14,14 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, heigh
     slope_u = 1.7*1e-5 # use this for now
     
     if 'area_fit' in reach.keys():
-        print('computing d_x_area')
+        #print('computing d_x_area')
         area_fit_outputs = area(
             reach_height, reach_width, reach['area_fit'])
 
         d_x_area = area_fit_outputs[0]
+
+        #print(d_x_area)
+
         if d_x_area < -10000000 or np.ma.is_masked(d_x_area):
             d_x_area = MISSING_VALUE_FLT
 
@@ -262,6 +265,12 @@ def _area(
     fit_height_var - height error std**2
     cov_height_width - covariance matrix for width / height
     """
+
+    #print('observed_height=',observed_height)
+    #print('height_breakpoints=',height_breakpoints)
+    #print('poly_fits=',poly_fits)
+    #print('area_median_flow=',area_median_flow)
+
     poly_ints = np.array([np.polyint(item) for item in poly_fits])
 
     height_fits_ll = height_breakpoints[0:-1]

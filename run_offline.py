@@ -10,7 +10,8 @@ import numpy as np
 # Local imports
 from offline.ReadOb import Rivertile
 from offline.ReadPRD import ReachDatabase
-from offline.ReadQparams import extract_alg
+#from offline.ReadQparams import extract_alg
+from offline.ReadQparamsIntegrator import extract_alg
 from offline.discharge import compute
 from offline.WriteQ import write_q
 
@@ -123,6 +124,9 @@ def main(input, output,index_to_run):
         run_type = None
         reach_json = input.joinpath("reaches.json") 
 
+    #print('type=',run_type)
+    #print('reach=',reach_json)
+
     # Input data
     reach_data = get_reach_data(reach_json,index_to_run)
     obs = Rivertile(input / "swot" / reach_data["swot"])
@@ -132,6 +136,8 @@ def main(input, output,index_to_run):
 
     if run_type:
         priors["discharge_models"] = extract_alg(FLPE_DIR, reach_data["reach_id"], run_type)
+
+    #print(priors)
 
     # Compute discharge
     data_dict = initialize_data_dict(obs["nt"], obs["time_steps"], reach_data["reach_id"])
@@ -151,9 +157,11 @@ if __name__ == "__main__":
     start = datetime.now()
 
     try:
-        index_to_run=int(sys.argv[1]) #integer
+        index_to_run=int(sys.argv[3]) #integer
     except IndexError:
         index_to_run=-235 #AWS
+
+    #print('indx=',index_to_run)
 
     main(INPUT, OUTPUT,index_to_run)
 

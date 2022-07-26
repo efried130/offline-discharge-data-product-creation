@@ -7,7 +7,6 @@ import numpy as np
 def ReachDatabase(reach_db_path, rch):
         
     dataset = nc.Dataset(reach_db_path, 'r')
-        
    
     reaches = dataset['reaches']['reach_id'][:]
     reach_ind = np.where(reaches == rch)
