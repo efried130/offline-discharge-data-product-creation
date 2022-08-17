@@ -361,3 +361,42 @@ def estimate_height(observed_width, observed_height, poly_fit, fit_width_var,
     sigma_uv = -poly_fit[0] * fit_height_var
     v = observed_width - poly_fit[1] - poly_fit[0] * observed_height
     return observed_height - v * sigma_uv/sigma_vv
+
+def empty_q():
+    """write empty outputs for reaches without valid q params"""
+    outputs = {}
+    outputs['d_x_area'] = MISSING_VALUE_FLT 
+    outputs['d_x_area_u'] = MISSING_VALUE_FLT
+    outputs['metro_q_uc'] = MISSING_VALUE_FLT
+    outputs['metro_q_uc_s_u'] = MISSING_VALUE_FLT
+    outputs['metro_q_uc_u'] = MISSING_VALUE_FLT
+    outputs['metro_q_c'] = MISSING_VALUE_FLT
+    outputs['metro_q_c_s_u'] = MISSING_VALUE_FLT
+    outputs['metro_q_c_u'] = MISSING_VALUE_FLT
+    outputs['bam_q_uc'] = MISSING_VALUE_FLT
+    outputs['bam_q_uc_s_u'] = MISSING_VALUE_FLT
+    outputs['bam_q_uc_u'] = MISSING_VALUE_FLT
+    outputs['bam_q_c'] = MISSING_VALUE_FLT
+    outputs['bam_q_c_s_u'] = MISSING_VALUE_FLT
+    outputs['bam_q_c_u'] = MISSING_VALUE_FLT
+    outputs['hivdi_q_uc'] = MISSING_VALUE_FLT
+    outputs['hivdi_q_uc_s_u'] = MISSING_VALUE_FLT
+    outputs['hivdi_q_uc_u'] = MISSING_VALUE_FLT
+    outputs['hivdi_q_c'] = MISSING_VALUE_FLT
+    outputs['hivdi_q_c_s_u'] = MISSING_VALUE_FLT
+    outputs['hivdi_q_c_u'] = MISSING_VALUE_FLT
+    outputs['momma_q_uc'] = MISSING_VALUE_FLT
+    outputs['momma_q_uc_s_u'] = MISSING_VALUE_FLT
+    outputs['momma_q_uc_u'] = MISSING_VALUE_FLT
+    outputs['momma_q_c'] = MISSING_VALUE_FLT
+    outputs['momma_q_c_s_u'] = MISSING_VALUE_FLT
+    outputs['momma_q_c_u'] = MISSING_VALUE_FLT
+    outputs['sads_q_uc'] = MISSING_VALUE_FLT
+    outputs['sads_q_uc_s_u'] = MISSING_VALUE_FLT
+    outputs['sads_q_uc_u'] = MISSING_VALUE_FLT
+    outputs['sads_q_c'] = MISSING_VALUE_FLT
+    outputs['sads_q_c_s_u'] = MISSING_VALUE_FLT
+    outputs['sads_q_c_u'] = MISSING_VALUE_FLT
+    outputs['consensus_q_uc'] = MISSING_VALUE_FLT
+    outputs['consensus_q_c'] = MISSING_VALUE_FLT
+    return outputs
