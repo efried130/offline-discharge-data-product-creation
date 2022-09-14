@@ -3,6 +3,7 @@ Offline Discharge Data Product Creation
 
 **Example Usage**
 
+```
 InputDir=Path('./offline_inputs')
 reaches_json=InputDir.joinpath('reaches.json')
 
@@ -13,6 +14,8 @@ nR=len(reaches)
 
 for reach in range(nR):
      %run /Users/mtd/GitHub/SWOT-confluence/offline-discharge-data-product-creation/run_offline.py 'unconstrained' 'timeseries' 'reaches.json'  $reach
+     
+```
      
 So the command line arguments in order are [branch] [SWOT observation mode] [reaches file] [reach #]
 
