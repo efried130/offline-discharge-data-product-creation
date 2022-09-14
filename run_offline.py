@@ -18,21 +18,14 @@ from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
 # Constants
-INPUT = Path("/mnt/data/input")
-FLPE_DIR = Path("/mnt/data/flpe")
-OUTPUT = Path("/mnt/data/output")
+#INPUT = Path("/mnt/data/input")
+#FLPE_DIR = Path("/mnt/data/flpe")
+#OUTPUT = Path("/mnt/data/output")
 
-#SWORD = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-creation/data/sword/na_apriori_rivers_v07_4q_v8.nc')
-#INPUT = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-\
-#creation/data/shp/V3/V3shp/')
-#FLPE_DIR = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-creation/data/moi_outdir')
-#OUTPUT = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-\
-#creation/data/out/')
-
-#SWORD = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/moi_outputs/na_sword_v11.nc') #this is not used yet...
-#INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
-#FLPE_DIR = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs/moi') 
-#OUTPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_outputs')
+#SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
+INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
+FLPE_DIR = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs/moi') 
+OUTPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_outputs')
 
 def get_reach_data(reach_json,index_to_run):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
