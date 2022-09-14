@@ -18,19 +18,21 @@ from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
 # Constants
-#INPUT = Path("/mnt/data/input")
-#FLPE_DIR = Path("/mnt/data/flpe")
-#OUTPUT = Path("/mnt/data/output")
-# INPUT = Path("/Users/mtd/Analysis/SWOT/Discharge/Confluence/verify/offline-discharge/input")
-# FLPE_DIR = Path("/Users/mtd/Analysis/SWOT/Discharge/Confluence/verify/moi/output")
-# OUTPUT = Path("/Users/mtd/Analysis/SWOT/Discharge/Confluence/verify/offline-discharge/output")
+INPUT = Path("/mnt/data/input")
+FLPE_DIR = Path("/mnt/data/flpe")
+OUTPUT = Path("/mnt/data/output")
 
-SWORD = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-creation/data/sword/na_apriori_rivers_v07_4q_v8.nc')
-INPUT = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-\
-creation/data/shp/V3/V3shp/')
-FLPE_DIR = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-creation/data/moi_outdir')
-OUTPUT = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-\
-creation/data/out/')
+#SWORD = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-creation/data/sword/na_apriori_rivers_v07_4q_v8.nc')
+#INPUT = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-\
+#creation/data/shp/V3/V3shp/')
+#FLPE_DIR = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-creation/data/moi_outdir')
+#OUTPUT = Path('/Users/rui/Desktop/Github/offline-discharge-data-product-\
+#creation/data/out/')
+
+#SWORD = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/moi_outputs/na_sword_v11.nc') #this is not used yet...
+#INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
+#FLPE_DIR = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs/moi') 
+#OUTPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_outputs')
 
 def get_reach_data(reach_json,index_to_run):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
@@ -162,6 +164,14 @@ def main(input, output, index_to_run):
         if input_type == 'timeseries':
             reach_json = input.joinpath("reaches.json")
 
+    flp_source='sword' # options are 'sword' or 'integrator'
+    da_source='obs' # options are 'obs' or 'compute'
+
+    #print(run_type)
+    #print(input_type)
+    #print(index_to_run)
+    #print(reach_json)
+
     # Input data for timeseries data
     if input_type == 'timeseries':
         reach_data = get_reach_data(reach_json, index_to_run)
@@ -169,13 +179,17 @@ def main(input, output, index_to_run):
         priors = ReachDatabase(input / "sword" / reach_data["sword"], 
             reach_data["reach_id"])
 
-        if run_type:
+        #if run_type:
+        if flp_source == 'integrator':
             priors["discharge_models"] = extract_alg(FLPE_DIR, reach_data["reach_id"], run_type)
+
+        if  da_source == 'obs':
+            del priors['area_fit']
 
         # Compute discharge
         data_dict = initialize_data_dict(obs["nt"], obs["time_steps"], reach_data["reach_id"])
         for i in range(obs["nt"]): 
-            if priors["area_fit"]["h_w_nobs"] != -9999:
+#            if priors["area_fit"]["h_w_nobs"] != -9999:
                 outputs = compute(priors, obs['height'][i], obs["width"][i], 
                                   obs["slope"][i], obs["d_x_area"][i], obs["wse_u"][i],
                                   obs["width_u"][i], obs["slope_u"][i], 
