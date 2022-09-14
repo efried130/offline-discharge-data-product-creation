@@ -18,14 +18,14 @@ from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
 # Constants
-#INPUT = Path("/mnt/data/input")
-#FLPE_DIR = Path("/mnt/data/flpe")
-#OUTPUT = Path("/mnt/data/output")
+INPUT = Path("/mnt/data/input")
+FLPE_DIR = Path("/mnt/data/flpe")
+OUTPUT = Path("/mnt/data/output")
 
 #SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
-INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
-FLPE_DIR = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs/moi') 
-OUTPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_outputs')
+#INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
+#FLPE_DIR = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs/moi') 
+#OUTPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_outputs')
 
 def get_reach_data(reach_json,index_to_run):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
