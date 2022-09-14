@@ -169,7 +169,7 @@ def main(input, output, index_to_run):
     if input_type == 'timeseries':
         reach_data = get_reach_data(reach_json, index_to_run)
         obs = Rivertile(input / "swot" / reach_data["swot"], input_type)
-        priors = ReachDatabase(input / "sword" / reach_data["sword"], 
+        priors = ReachDatabase(input / "sword" / reach_data["sword"].replace('.nc', '_moi.nc'), 
             reach_data["reach_id"])
 
         #if run_type:
