@@ -197,8 +197,8 @@ def main(input, output, index_to_run):
             priors["discharge_models"] = extract_alg(FLPE_DIR,
                                                      reach_data["reach_id"],
                                                      run_type)
-        # if compute dA, remove 'area_fit' params
-        if da_source == 'compute':
+        # if dA from integrator flp, remove 'area_fit' params, is this necessary?
+        if da_source == 'obs':
             del priors['area_fit']
 
         # Compute discharge
@@ -236,6 +236,9 @@ def main(input, output, index_to_run):
                 # if flp_source == 'sword':
                 #     priors = ReachDatabase(SWORD, obs['reach_id'][j])
                 # If integrator flp, discharge params extract from integrator
+
+                # if sp, dA has to be from integrator with dA or sword with
+                # area_fit params
                 if flp_source == 'integrator':
                     priors['discharge_models'] = extract_alg(FLPE_DIR,
                                                              obs['reach_id'][
