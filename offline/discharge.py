@@ -14,13 +14,9 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, heigh
     slope_u = 1.7*1e-5 # use this for now
     
     if 'area_fit' in reach.keys():
-        #print('computing d_x_area')
         area_fit_outputs = area(
             reach_height, reach_width, reach['area_fit'])
-
         d_x_area = area_fit_outputs[0]
-
-        #print(d_x_area)
 
         if d_x_area < -10000000 or np.ma.is_masked(d_x_area):
             d_x_area = MISSING_VALUE_FLT
