@@ -21,6 +21,8 @@ from offline.WriteQ2Shp import write_q2shp
 INPUT = Path("/mnt/data/input")
 FLPE_DIR = Path("/mnt/data/flpe")
 OUTPUT = Path("/mnt/data/output")
+SWORD = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/"
+             "offline_inputs/na_sword_v11.nc")
 
 
 # SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
@@ -184,28 +186,30 @@ def main(input, output, index_to_run):
     # print(index_to_run)
     # print(reach_json)
 
-    # Input data for timeseries data
+    # Input timeseries data
     if input_type == 'timeseries':
         reach_data = get_reach_data(reach_json, index_to_run)
         obs = Rivertile(input / "swot" / reach_data["swot"], input_type)
-        priors = ReachDatabase(input / "sword" / reach_data["sword"].
-                               replace('.nc', '_moi.nc'),
-                               reach_data["reach_id"])
 
-        # If integrator flp, discharge params extract from integrator
         if flp_source == 'integrator':
             priors["discharge_models"] = extract_alg(FLPE_DIR,
                                                      reach_data["reach_id"],
                                                      run_type)
-        # if dA from integrator flp, remove 'area_fit' params, is this necessary?
-        if da_source == 'obs':
-            del priors['area_fit']
+        elif flp_source == 'sword':
+            priors = ReachDatabase(input / "sword" / reach_data["sword"].
+                                   replace('.nc', '_moi.nc'),
+                                   reach_data["reach_id"])
+        else:
+            sys.exit('flp source not valid')
+
+        # if dA from timeseries, remove 'area_fit' params, so discharge module
+        # won't compute dA again, don't need to set up dA source
+        del priors['area_fit']
 
         # Compute discharge
         data_dict = initialize_data_dict(obs["nt"], obs["time_steps"],
                                          reach_data["reach_id"])
         for i in range(obs["nt"]):
-            # if priors["area_fit"]["h_w_![](../../../Desktop/Screen Shot 2022-10-03 at 9.29.37 AM.png)nobs"] != -9999:
             outputs = compute(priors, obs['height'][i], obs["width"][i],
                               obs["slope"][i], obs["d_x_area"][i],
                               obs["wse_u"][i],
@@ -216,15 +220,17 @@ def main(input, output, index_to_run):
         # Output discharge model values
         write_q(output, data_dict)
 
-    # find reaches in FLPE folder 
-    flpe_file_list = list(FLPE_DIR.glob('*integrator.nc'))
-    flpe_rch = []
-    for flpe_file in flpe_file_list:
-        flpe_file = os.path.split(flpe_file)
-        flpe_rch.append(int(flpe_file[1].split('_')[0]))
+    # Input single pass (sp) data
+    # !!!! Remove this chunk if we only plan to get prior from sword for sp
+    # processing
+    # Find reaches in FLPE folder
+    # flpe_file_list = list(FLPE_DIR.glob('*integrator.nc'))
+    # flpe_rch = []
+    # for flpe_file in flpe_file_list:
+    #     flpe_file = os.path.split(flpe_file)
+    #     flpe_rch.append(int(flpe_file[1].split('_')[0]))
 
-    # input data for single pass data
-    # list all of .shp files in INPUT directory and process one by one
+    # List all of .shp files in INPUT directory and process one by one
     if input_type == 'single_pass':
         shapefiles = list(INPUT.glob('SWOT_L2_HR_RiverSP_reach*.shp'))
         for shapefile in shapefiles:
@@ -232,28 +238,27 @@ def main(input, output, index_to_run):
             obs = Rivertile(shapefile, input_type)
             data_dict = initialize_data_dict_sp(len(obs['reach_id']))
             for j in range(len(obs['reach_id'])):
-                # # If sword flp, discharge params extract from sword
+                # !!!! Remove this chunk if we only plan to get prior from
+                # sword for sp processing
+                # If sword flp, discharge params extract from sword
                 # if flp_source == 'sword':
                 #     priors = ReachDatabase(SWORD, obs['reach_id'][j])
                 # If integrator flp, discharge params extract from integrator
-
-                # if sp, dA has to be from integrator with dA or sword with
-                # area_fit params
-                if flp_source == 'integrator':
-                    priors['discharge_models'] = extract_alg(FLPE_DIR,
-                                                             obs['reach_id'][
-                                                                 j], run_type)
-
-                print('reach_id: ', int(obs['reach_id'][j]))
-                if run_type and obs['height'][j] != -999999999999 \
-                        and int(obs['reach_id'][j]) in flpe_file_list:
-                    if priors["area_fit"]["h_w_nobs"] != -9999:
-                        outputs = compute(priors, obs['height'][j],
-                                          obs['width'][j],
-                                          obs['slope'][j], obs['d_x_area'][j],
-                                          obs['wse_u'][j], obs['width_u'][j],
-                                          obs['slope_u'][j],
-                                          obs['d_x_area_u'][j])
+                # if sp, dA has to be from integrator with dA already computed
+                # or sword with area_fit params
+                # if flp_source == 'integrator':
+                #     priors['discharge_models'] = extract_alg(FLPE_DIR,
+                #                                              obs['reach_id'][
+                #                                                  j], run_type)
+                priors = ReachDatabase(SWORD, obs['reach_id'][j])
+                print('single pass reach_id: ', int(obs['reach_id'][j]))
+                if obs['height'][j] != -999999999999 \
+                        and priors["area_fit"]["h_w_nobs"] != -9999:
+                    outputs = compute(priors, obs['height'][j],
+                                      obs['width'][j], obs['slope'][j],
+                                      obs['d_x_area'][j], obs['wse_u'][j],
+                                      obs['width_u'][j], obs['slope_u'][j],
+                                      obs['d_x_area_u'][j])
                 else:
                     outputs = empty_q()
                 populate_data_array(data_dict, outputs, j)
