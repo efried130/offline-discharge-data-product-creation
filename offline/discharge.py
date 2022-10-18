@@ -10,10 +10,8 @@ MISSING_VALUE_FLT = -999999999999
 
 def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, height_u, width_u, slope_u, d_x_area_u):
     """Computes the discharge models"""
-    
-    slope_u = 1.7*1e-5 # use this for now
-    
-    if 'area_fit' in reach.keys():
+
+    if 'area_fit' in reach.keys() and reach_d_x_area is None:
         area_fit_outputs = area(
             reach_height, reach_width, reach['area_fit'])
         d_x_area = area_fit_outputs[0]

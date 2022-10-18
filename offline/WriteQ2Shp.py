@@ -3,7 +3,6 @@ Read reach data from SWOT rivertile file.
 """
 import numpy as np
 import os
-import fiona
 import geopandas as gpd
 
 FILL_VALUE = -999999999999

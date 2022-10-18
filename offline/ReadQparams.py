@@ -37,7 +37,8 @@ def extract_alg(alg_dir, r_id, run_type):
     mm_file = Path(mm_file[0]) 
 
 #     if gb_file.exists() and hv_file.exists() and mm_file.exists() and mo_file.exists() and sd_file.exists():
-    if os.path.exists(gb_file) and os.path.exists(hv_file) and os.path.exists(mm_file) and os.path.exists(mo_file) and os.path.exists(sd_file):
+    if os.path.exists(gb_file) and os.path.exists(hv_file) and \
+            os.path.exists(mm_file) and os.path.exists(mo_file) and os.path.exists(sd_file):
         param_dict = extract_valid(r_id, run_type, gb_file, hv_file, mo_file, sd_file, mm_file)
     else:
         param_dict = indicate_no_data(r_id)

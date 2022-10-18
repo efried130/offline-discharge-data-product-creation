@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 import sys
-
 # Third-party imports
 import numpy as np
 
@@ -18,11 +17,11 @@ from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
 # Constants
-INPUT = Path("/mnt/data/input")
-FLPE_DIR = Path("/mnt/data/flpe")
-OUTPUT = Path("/mnt/data/output")
+INPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs")
+FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/moi")
+OUTPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/output")
 SWORD = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/"
-             "offline_inputs/na_sword_v11.nc")
+             "offline_inputs/sword/na_sword_v11.nc")
 
 
 # SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
@@ -161,50 +160,52 @@ def populate_data_array(data_dict, outputs, index):
 def main(input, output, index_to_run):
     """Main function to execute offline discharge product generation and
     storage.
-    
     Command line arguments:
-    run_type: either `unconstrained` or `constrained` (argument 1)
-    reach_json: title of JSON file that contains reach data (argument 2)
-    """
+    run_type: options are `unconstrained` or `constrained` (argument 1)
+    input_type: options are 'timeseries' or 'single_pass' (argument 2)
+                - timeseries: timer-series swot observations in one NetCDF file,
+                              cross-sectional area change (d_x_area) should be
+                              already computed and saved in time-series files.
+                              discharge params from different discharge models
+                              will be extracted from either moi-sword or integrator
+                - single-pass: single-pass swot observation shapefiles, this is
+                               what the swot data will look like. sword database
+                               will be pulled d_x_area and discharge will be computed.
+    flp_source: options are 'sword' or 'integrator' (argument 3)
+    reach_json: title of JSON file that contains reach data (argument 4)
 
+    Note: if input_type = single_pass, run_type, flp_source and reach_json will not be used.
+          Set them to None or any other strings will work
+    """
     # Command line arguments
     try:
         run_type = sys.argv[1]
         input_type = sys.argv[2]
+        flp_source = sys.argv[3] # options are 'sword' or 'integrator
         if input_type == 'timeseries':
-            reach_json = input.joinpath(sys.argv[3])
+            reach_json = input.joinpath(sys.argv[4])
     except IndexError:
         run_type = None
         if input_type == 'timeseries':
             reach_json = input.joinpath("reaches.json")
 
-    flp_source = 'sword'  # options are 'sword' or 'integrator'
-    da_source = 'obs'  # options are 'obs' or 'compute'
-
-    # print(run_type)
-    # print(input_type)
-    # print(index_to_run)
-    # print(reach_json)
-
     # Input timeseries data
     if input_type == 'timeseries':
         reach_data = get_reach_data(reach_json, index_to_run)
         obs = Rivertile(input / "swot" / reach_data["swot"], input_type)
-
-        if flp_source == 'integrator':
-            priors["discharge_models"] = extract_alg(FLPE_DIR,
-                                                     reach_data["reach_id"],
-                                                     run_type)
-        elif flp_source == 'sword':
+        if flp_source == 'sword':
             priors = ReachDatabase(input / "sword" / reach_data["sword"].
                                    replace('.nc', '_moi.nc'),
                                    reach_data["reach_id"])
+            # if dA from timeseries, remove 'area_fit' params, so discharge module
+            # won't compute dA again, don't need to set up dA source
+            del priors['area_fit']
+        elif flp_source == 'integrator':
+            priors = {"discharge_models": extract_alg(FLPE_DIR,
+                                                      reach_data["reach_id"],
+                                                      run_type)}
         else:
-            sys.exit('flp source not valid')
-
-        # if dA from timeseries, remove 'area_fit' params, so discharge module
-        # won't compute dA again, don't need to set up dA source
-        del priors['area_fit']
+            sys.exit('Warning: flp source not valid')
 
         # Compute discharge
         data_dict = initialize_data_dict(obs["nt"], obs["time_steps"],
@@ -220,52 +221,42 @@ def main(input, output, index_to_run):
         # Output discharge model values
         write_q(output, data_dict)
 
-    # Input single pass (sp) data
-    # !!!! Remove this chunk if we only plan to get prior from sword for sp
-    # processing
-    # Find reaches in FLPE folder
-    # flpe_file_list = list(FLPE_DIR.glob('*integrator.nc'))
-    # flpe_rch = []
-    # for flpe_file in flpe_file_list:
-    #     flpe_file = os.path.split(flpe_file)
-    #     flpe_rch.append(int(flpe_file[1].split('_')[0]))
-
-    # List all of .shp files in INPUT directory and process one by one
+    # List all the reach .shp files in INPUT directory and process one by one
     if input_type == 'single_pass':
-        shapefiles = list(INPUT.glob('SWOT_L2_HR_RiverSP_reach*.shp'))
+        input_shapefile = input.joinpath('shapefile')
+        shapefiles = list(input_shapefile.glob('SWOT_L2_HR_RiverSP_reach*.shp'))
+
         for shapefile in shapefiles:
-            print('SHAPEFILE:        ', shapefile)
+            print('SHAPEFILE: ', shapefile)
             obs = Rivertile(shapefile, input_type)
             data_dict = initialize_data_dict_sp(len(obs['reach_id']))
             for j in range(len(obs['reach_id'])):
-                # !!!! Remove this chunk if we only plan to get prior from
-                # sword for sp processing
-                # If sword flp, discharge params extract from sword
-                # if flp_source == 'sword':
-                #     priors = ReachDatabase(SWORD, obs['reach_id'][j])
-                # If integrator flp, discharge params extract from integrator
-                # if sp, dA has to be from integrator with dA already computed
-                # or sword with area_fit params
-                # if flp_source == 'integrator':
-                #     priors['discharge_models'] = extract_alg(FLPE_DIR,
-                #                                              obs['reach_id'][
-                #                                                  j], run_type)
                 priors = ReachDatabase(SWORD, obs['reach_id'][j])
-                print('single pass reach_id: ', int(obs['reach_id'][j]))
                 if obs['height'][j] != -999999999999 \
-                        and priors["area_fit"]["h_w_nobs"] != -9999:
+                        and priors["area_fit"]["h_variance"] != -9999:
+                    # sword doesn't have the value below, so made up some value for testing
+                    # remove after
+                    priors["area_fit"]["w_variance"] = 5
+                    priors["area_fit"]["hw_covariance"] = 3
+                    priors["area_fit"]["h_break"] = [[[50], [100], [160]]]
+                    priors["area_fit"]["w_break"] = [[[200], [400], [600]]]
+                    priors["area_fit"]["h_err_stdev"] = 0.01
+                    priors["area_fit"]["w_err_stdev"] = 2
+                    priors["area_fit"]["h_w_nobs"] = 25
+                    priors["area_fit"]["fit_coeffs"] = [[[2], [1], [2]]]
+                    priors["area_fit"]["med_flow_area"] = 100
+                    # remove above after testing
                     outputs = compute(priors, obs['height'][j],
                                       obs['width'][j], obs['slope'][j],
                                       obs['d_x_area'][j], obs['wse_u'][j],
                                       obs['width_u'][j], obs['slope_u'][j],
                                       obs['d_x_area_u'][j])
+                    print(outputs['metro_q_uc'])
                 else:
                     outputs = empty_q()
                 populate_data_array(data_dict, outputs, j)
             # Output discharge model values
-            # print('data_dict', data_dict)
             write_q2shp(shapefile, output, data_dict)
-
 
 if __name__ == "__main__":
     from datetime import datetime
@@ -273,7 +264,7 @@ if __name__ == "__main__":
     start = datetime.now()
 
     try:
-        index_to_run = int(sys.argv[4])  # integer
+        index_to_run = int(sys.argv[5])  # integer
     except IndexError:
         index_to_run = -235  # AWS
 
