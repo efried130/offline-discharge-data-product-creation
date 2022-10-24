@@ -20,6 +20,7 @@ from offline.WriteQ2Shp import write_q2shp
 INPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs")
 FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/moi")
 OUTPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/output")
+# SWORD dir for single_pass run
 SWORD = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/"
              "offline_inputs/sword/na_sword_v11.nc")
 
@@ -234,7 +235,7 @@ def main(input, output, index_to_run):
                 priors = ReachDatabase(SWORD, obs['reach_id'][j])
                 if obs['height'][j] != -999999999999 \
                         and priors["area_fit"]["h_variance"] != -9999:
-                    # sword doesn't have the value below, so made up some value for testing
+                    # sword doesn't have the values below, so made up some values for testing
                     # remove after
                     priors["area_fit"]["w_variance"] = 5
                     priors["area_fit"]["hw_covariance"] = 3
@@ -251,7 +252,6 @@ def main(input, output, index_to_run):
                                       obs['d_x_area'][j], obs['wse_u'][j],
                                       obs['width_u'][j], obs['slope_u'][j],
                                       obs['d_x_area_u'][j])
-                    print(outputs['metro_q_uc'])
                 else:
                     outputs = empty_q()
                 populate_data_array(data_dict, outputs, j)
