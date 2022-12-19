@@ -65,7 +65,6 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             metro_u = np.sqrt(metro_r_u**2 + metro_s_u**2)
         else:
             metro_q = MISSING_VALUE_FLT
-            metro_u = MISSING_VALUE_FLT
             metro_s_u = MISSING_VALUE_FLT
             metro_u = MISSING_VALUE_FLT
 
@@ -89,7 +88,6 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             bam_u = np.sqrt(bam_r_u**2 + bam_s_u**2)
         else:
             bam_q = MISSING_VALUE_FLT
-            bam_u = MISSING_VALUE_FLT
             bam_s_u = MISSING_VALUE_FLT
             bam_u = MISSING_VALUE_FLT
 
@@ -115,7 +113,6 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             hivdi_u = np.sqrt(hivdi_r_u**2 + hivdi_s_u**2)
         else:
             hivdi_q = MISSING_VALUE_FLT
-            hivdi_u = MISSING_VALUE_FLT
             hivdi_s_u = MISSING_VALUE_FLT
             hivdi_u = MISSING_VALUE_FLT
 
@@ -156,7 +153,6 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
 
         else:
             momma_q = MISSING_VALUE_FLT
-            momma_u = MISSING_VALUE_FLT
             momma_s_u = MISSING_VALUE_FLT
             momma_u = MISSING_VALUE_FLT
 
@@ -178,12 +174,32 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             sads_u = np.sqrt(sads_r_u**2 + sads_s_u**2)
         else:
             sads_q = MISSING_VALUE_FLT
-            sads_u = MISSING_VALUE_FLT
             sads_s_u = MISSING_VALUE_FLT
             sads_u = MISSING_VALUE_FLT
 
-        if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q]):
-            consensus_q = np.median([metro_q, bam_q, hivdi_q, momma_q, sads_q])
+        # 7: Compute SIC4DVar model
+        sic4dvar_n = models['SIC4DVar']['n']
+        sic4dvar_Abar = models['SIC4DVar']['Abar']
+        sic4dvar_s_u = 0.4  # models['SIC4DVar']['sbQ_rel']
+
+        if (reach_width > 0 and reach_slope > 0 and sic4dvar_Abar+d_x_area >= 0
+                and sic4dvar_Abar > 0 and sic4dvar_n > 0):
+
+            sic4dvar_q = (
+                (d_x_area + sic4dvar_Abar)**(5/3) * reach_width ** (-2/3) *
+                (reach_slope)**(1/2)) / sic4dvar_n
+            sic4dvar_slp_u = slope_u / (2*reach_slope)
+            sic4dvar_d_x_area_u = 5*d_x_area_u / (3*(sic4dvar_Abar + d_x_area))
+            sic4dvar_r_u = np.sqrt(sic4dvar_width_u**2 + sic4dvar_slp_u ** 2 +
+                                   sic4dvar_d_x_area_u**2)
+            sic4dvar_u = np.sqrt(sic4dvar_r_u**2 + sic4dvar_s_u**2)
+        else:
+            sic4dvar_q = MISSING_VALUE_FLT
+
+        if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q,
+                                      sic4dvar_q]):
+            consensus_q = np.median([metro_q, bam_q, hivdi_q, momma_q, sads_q,
+                                     sic4dvar_q])
         else:
             consensus_q = MISSING_VALUE_FLT
 
@@ -203,6 +219,9 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             outputs['sads_q_c'] = sads_q
             outputs['sads_q_c_s_u'] = sads_s_u
             outputs['sads_q_c_u'] = sads_u
+            outputs['sic4dvar_q_c'] = sic4dvar_q
+            outputs['sic4dvar_q_c_s_u'] = sic4dvar_s_u
+            outputs['sic4dvar_q_c_u'] = sic4dvar_u
             outputs['consensus_q_c'] = consensus_q
         elif key == 'unconstrained':
             outputs['metro_q_uc'] = metro_q
@@ -220,6 +239,9 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             outputs['sads_q_uc'] = sads_q
             outputs['sads_q_uc_s_u'] = sads_s_u
             outputs['sads_q_uc_u'] = sads_u
+            outputs['sic4dvar_q_uc'] = sic4dvar_q
+            outputs['sic4dvar_q_uc_s_u'] = sic4dvar_s_u
+            outputs['sic4dvar_q_uc_u'] = sic4dvar_u
             outputs['consensus_q_uc'] = consensus_q
     return outputs
 
