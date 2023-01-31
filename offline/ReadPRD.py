@@ -15,23 +15,27 @@ def ReachDatabase(reach_db_path, rch):
                                                     'BAM': {},
                                                     'HiVDI': {},
                                                     'MOMMA': {},
-                                                    'SADS': {}},
+                                                    'SADS': {},
+                                                    'SIC4DVar': {}},
+
                                   'constrained': {'MetroMan': {},
                                                   'BAM': {},
                                                   'HiVDI': {},
                                                   'MOMMA': {},
-                                                  'SADS': {}}}}
+                                                  'SADS': {},
+                                                  'SIC4DVar': {}}}}
 
     area_fit_key = ['h_variance', 'w_variance', 'hw_covariance',
                     'med_flow_area', 'h_err_stdev', 'w_err_stdev',
                     'h_w_nobs']
     metroman_key = ['Abar', 'Abar_stdev', 'ninf', 'ninf_stdev',
                     'p', 'p_stdev', 'ninf_p_cor', 'p_Abar_cor',
-                    'ninf_Abar_cor']
-    bam_key = ['Abar', 'n']
-    hivdi_key = ['Abar', 'alpha', 'beta']
-    momma_key = ['B', 'H', 'Save']
-    sads_key = ['Abar', 'n']
+                    'ninf_Abar_cor', 'sbQ_rel']
+    bam_key = ['Abar', 'n', 'sbQ_rel']
+    hivdi_key = ['Abar', 'alpha', 'beta', 'sbQ_rel']
+    momma_key = ['B', 'H', 'Save', 'sbQ_rel']
+    sads_key = ['Abar', 'n', 'sbQ_rel']
+    sic4dvar_key = ['Abar', 'n', 'sbQ_rel']
 
     # area fits
     for key in area_fit_key:
@@ -70,6 +74,11 @@ def ReachDatabase(reach_db_path, rch):
         reach['discharge_models']['unconstrained']['SADS'][key] \
             = np.array(dataset['reaches']['discharge_models']
                        ['unconstrained']['SADS'][key][reach_ind])
+    for key in sic4dvar_key:
+        reach['discharge_models']['unconstrained']['SIC4DVar'][key] \
+            = np.array(dataset['reaches']['discharge_models']
+                       ['unconstrained']['SIC4DVar'][key][reach_ind])
+
     # constrained
     for key in metroman_key:
         reach['discharge_models']['constrained']['MetroMan'][key] \
@@ -91,6 +100,10 @@ def ReachDatabase(reach_db_path, rch):
         reach['discharge_models']['constrained']['SADS'][key] \
             = np.array(dataset['reaches']['discharge_models']
                        ['constrained']['SADS'][key][reach_ind])
+    for key in sic4dvar_key:
+        reach['discharge_models']['constrained']['SIC4DVar'][key] \
+            = np.array(dataset['reaches']['discharge_models']
+                       ['constrained']['SIC4DVar'][key][reach_ind])
     dataset.close()
 
     return reach

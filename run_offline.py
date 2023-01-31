@@ -1,6 +1,7 @@
 # Standard imports
 import json
 import os
+import pdb
 from pathlib import Path
 import sys
 # Third-party imports
@@ -10,19 +11,19 @@ import numpy as np
 from offline.ReadOb import Rivertile
 from offline.ReadObs import Rivertile
 from offline.ReadPRD import ReachDatabase
-# from offline.ReadQparams import extract_alg
-from offline.ReadQparamsIntegrator import extract_alg
+#from offline.ReadQparams import extract_alg # use with flpe dir
+from offline.ReadQparamsIntegrator import extract_alg #  use with moi dir
 from offline.discharge import compute, empty_q
 from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
 # Constants
-INPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs")
-FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/moi")
-OUTPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/output")
+INPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/input/")
+FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/moi")
+#FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/flpe")
+OUTPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/output")
 # SWORD dir for single_pass run
-SWORD = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/"
-             "offline_inputs/sword/na_sword_v11.nc")
+SWORD = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/input/sword/na_sword_v11.nc")
 
 
 # SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
@@ -66,16 +67,42 @@ def initialize_data_dict(nt, time_steps, reach_id):
         "d_x_area": np.repeat(np.nan, nt),
         "d_x_area_u": np.repeat(np.nan, nt),
         "metro_q_c": np.repeat(np.nan, nt),
-        "bam_q_c": np.repeat(np.nan, nt),
-        "hivdi_q_c": np.repeat(np.nan, nt),
-        "momma_q_c": np.repeat(np.nan, nt),
-        "sads_q_c": np.repeat(np.nan, nt),
-        "consensus_q_c": np.repeat(np.nan, nt),
         "metro_q_uc": np.repeat(np.nan, nt),
+        "metro_q_c_s_u": np.repeat(np.nan, nt),
+        "metro_q_c_u": np.repeat(np.nan, nt),
+        "metro_q_uc_s_u": np.repeat(np.nan, nt),
+        "metro_q_uc_u": np.repeat(np.nan, nt),
+        "bam_q_c": np.repeat(np.nan, nt),
         "bam_q_uc": np.repeat(np.nan, nt),
+        "bam_q_c_s_u": np.repeat(np.nan, nt),
+        "bam_q_c_u": np.repeat(np.nan, nt),
+        "bam_q_uc_s_u": np.repeat(np.nan, nt),
+        "bam_q_uc_u": np.repeat(np.nan, nt),
+        "hivdi_q_c": np.repeat(np.nan, nt),
         "hivdi_q_uc": np.repeat(np.nan, nt),
+        "hivdi_q_c_s_u": np.repeat(np.nan, nt),
+        "hivdi_q_c_u": np.repeat(np.nan, nt),
+        "hivdi_q_uc_s_u": np.repeat(np.nan, nt),
+        "hivdi_q_uc_u": np.repeat(np.nan, nt),
+        "momma_q_c": np.repeat(np.nan, nt),
         "momma_q_uc": np.repeat(np.nan, nt),
+        "momma_q_c_s_u": np.repeat(np.nan, nt),
+        "momma_q_c_u": np.repeat(np.nan, nt),
+        "momma_q_uc_s_u": np.repeat(np.nan, nt),
+        "momma_q_uc_u": np.repeat(np.nan, nt),
+        "sads_q_c": np.repeat(np.nan, nt),
         "sads_q_uc": np.repeat(np.nan, nt),
+        "sads_q_c_s_u": np.repeat(np.nan, nt),
+        "sads_q_c_u": np.repeat(np.nan, nt),
+        "sads_q_uc_s_u": np.repeat(np.nan, nt),
+        "sads_q_uc_u": np.repeat(np.nan, nt),
+        "sic4dvar_q_c": np.repeat(np.nan, nt),
+        "sic4dvar_q_uc": np.repeat(np.nan, nt),
+        "sic4dvar_q_c_s_u": np.repeat(np.nan, nt),
+        "sic4dvar_q_c_u": np.repeat(np.nan, nt),
+        "sic4dvar_q_uc_s_u": np.repeat(np.nan, nt),
+        "sic4dvar_q_uc_u": np.repeat(np.nan, nt),
+        "consensus_q_c": np.repeat(np.nan, nt),
         "consensus_q_uc": np.repeat(np.nan, nt),
         "nt": nt,
         "reach_id": reach_id,
@@ -95,16 +122,42 @@ def initialize_data_dict_sp(rch_n):
         "d_x_area": np.repeat(np.nan, rch_n),
         "d_x_area_u": np.repeat(np.nan, rch_n),
         "metro_q_c": np.repeat(np.nan, rch_n),
-        "bam_q_c": np.repeat(np.nan, rch_n),
-        "hivdi_q_c": np.repeat(np.nan, rch_n),
-        "momma_q_c": np.repeat(np.nan, rch_n),
-        "sads_q_c": np.repeat(np.nan, rch_n),
-        "consensus_q_c": np.repeat(np.nan, rch_n),
         "metro_q_uc": np.repeat(np.nan, rch_n),
+        "metro_q_c_s_u": np.repeat(np.nan, rch_n),
+        "metro_q_c_u": np.repeat(np.nan, rch_n),
+        "metro_q_uc_s_u": np.repeat(np.nan, rch_n),
+        "metro_q_uc_u": np.repeat(np.nan, rch_n),
+        "bam_q_c": np.repeat(np.nan, rch_n),
         "bam_q_uc": np.repeat(np.nan, rch_n),
+        "bam_q_c_s_u": np.repeat(np.nan, rch_n),
+        "bam_q_c_u": np.repeat(np.nan, rch_n),
+        "bam_q_uc_s_u": np.repeat(np.nan, rch_n),
+        "bam_q_uc_u": np.repeat(np.nan, rch_n),
+        "hivdi_q_c": np.repeat(np.nan, rch_n),
         "hivdi_q_uc": np.repeat(np.nan, rch_n),
+        "hivdi_q_c_s_u": np.repeat(np.nan, rch_n),
+        "hivdi_q_c_u": np.repeat(np.nan, rch_n),
+        "hivdi_q_uc_s_u": np.repeat(np.nan, rch_n),
+        "hivdi_q_uc_u": np.repeat(np.nan, rch_n),
+        "momma_q_c": np.repeat(np.nan, rch_n),
         "momma_q_uc": np.repeat(np.nan, rch_n),
+        "momma_q_c_s_u": np.repeat(np.nan, rch_n),
+        "momma_q_c_u": np.repeat(np.nan, rch_n),
+        "momma_q_uc_s_u": np.repeat(np.nan, rch_n),
+        "momma_q_uc_u": np.repeat(np.nan, rch_n),
+        "sads_q_c": np.repeat(np.nan, rch_n),
         "sads_q_uc": np.repeat(np.nan, rch_n),
+        "sads_q_c_s_u": np.repeat(np.nan, rch_n),
+        "sads_q_c_u": np.repeat(np.nan, rch_n),
+        "sads_q_uc_s_u": np.repeat(np.nan, rch_n),
+        "sads_q_uc_u": np.repeat(np.nan, rch_n),
+        "sic4dvar_q_c": np.repeat(np.nan, rch_n),
+        "sic4dvar_q_uc": np.repeat(np.nan, rch_n),
+        "sic4dvar_q_c_s_u": np.repeat(np.nan, rch_n),
+        "sic4dvar_q_c_u": np.repeat(np.nan, rch_n),
+        "sic4dvar_q_uc_s_u": np.repeat(np.nan, rch_n),
+        "sic4dvar_q_uc_u": np.repeat(np.nan, rch_n),
+        "consensus_q_c": np.repeat(np.nan, rch_n),
         "consensus_q_uc": np.repeat(np.nan, rch_n),
         "reach_id": np.repeat(np.nan, rch_n)
     })
@@ -124,31 +177,109 @@ def populate_data_array(data_dict, outputs, index):
     """
 
     # Insert data
+    # d_x_are
     data_dict["d_x_area"][index] = outputs["d_x_area"]
     data_dict["d_x_area_u"][index] = outputs[
         "d_x_area_u"] if "d_x_area_u" in outputs.keys() else None
+    # metroman
     data_dict["metro_q_c"][index] = outputs["metro_q_c"][0] if type(
         outputs["metro_q_c"]) is np.ndarray else outputs["metro_q_c"]
-    data_dict["bam_q_c"][index] = outputs["bam_q_c"][0] if type(
-        outputs["bam_q_c"]) is np.ndarray else outputs["bam_q_c"]
-    data_dict["hivdi_q_c"][index] = outputs["hivdi_q_c"][0] if type(
-        outputs["hivdi_q_c"]) is np.ndarray else outputs["hivdi_q_c"]
-    data_dict["momma_q_c"][index] = outputs["momma_q_c"][0] if type(
-        outputs["momma_q_c"]) is np.ndarray else outputs["momma_q_c"]
-    data_dict["sads_q_c"][index] = outputs["sads_q_c"][0] if type(
-        outputs["sads_q_c"]) is np.ndarray else outputs["sads_q_c"]
-    data_dict["consensus_q_c"][index] = outputs["consensus_q_c"][0] if type(
-        outputs["consensus_q_c"]) is np.ndarray else outputs["consensus_q_c"]
+    data_dict["metro_q_c_s_u"][index] = outputs["metro_q_c_s_u"][0] if type(
+        outputs["metro_q_c_s_u"]) is np.ndarray else outputs["metro_q_c_s_u"]
+    data_dict["metro_q_c_u"][index] = outputs["metro_q_c_u"][0] if type(
+        outputs["metro_q_c_u"]) is np.ndarray else outputs["metro_q_c_u"]
+
     data_dict["metro_q_uc"][index] = outputs["metro_q_uc"][0] if type(
         outputs["metro_q_uc"]) is np.ndarray else outputs["metro_q_uc"]
+    data_dict["metro_q_uc_s_u"][index] = outputs["metro_q_uc_s_u"][0] if type(
+        outputs["metro_q_uc_s_u"]) is np.ndarray else outputs["metro_q_uc_s_u"]
+    data_dict["metro_q_uc_u"][index] = outputs["metro_q_uc_u"][0] if type(
+        outputs["metro_q_uc_u"]) is np.ndarray else outputs["metro_q_uc_u"]
+
+
+
+    # bam
+    data_dict["bam_q_c"][index] = outputs["bam_q_c"][0] if type(
+        outputs["bam_q_c"]) is np.ndarray else outputs["bam_q_c"]
+    data_dict["bam_q_c_s_u"][index] = outputs["bam_q_c_s_u"][0] if type(
+        outputs["bam_q_c_s_u"]) is np.ndarray else outputs["bam_q_c_s_u"]
+    data_dict["bam_q_c_u"][index] = outputs["bam_q_c_u"][0] if type(
+        outputs["bam_q_c_u"]) is np.ndarray else outputs["bam_q_c_u"]
+
     data_dict["bam_q_uc"][index] = outputs["bam_q_uc"][0] if type(
         outputs["bam_q_uc"]) is np.ndarray else outputs["bam_q_uc"]
+    data_dict["bam_q_uc_s_u"][index] = outputs["bam_q_uc_s_u"][0] if type(
+        outputs["bam_q_uc_s_u"]) is np.ndarray else outputs["bam_q_uc_s_u"]
+    data_dict["bam_q_uc_u"][index] = outputs["bam_q_uc_u"][0] if type(
+        outputs["bam_q_uc_u"]) is np.ndarray else outputs["bam_q_uc_u"]
+
+    # hivdi
+    data_dict["hivdi_q_c"][index] = outputs["hivdi_q_c"][0] if type(
+        outputs["hivdi_q_c"]) is np.ndarray else outputs["hivdi_q_c"]
+    data_dict["hivdi_q_c_s_u"][index] = outputs["hivdi_q_c_s_u"][0] if type(
+        outputs["hivdi_q_c_s_u"]) is np.ndarray else outputs["hivdi_q_c_s_u"]
+    data_dict["hivdi_q_c_u"][index] = outputs["hivdi_q_c_u"][0] if type(
+        outputs["hivdi_q_c_u"]) is np.ndarray else outputs["hivdi_q_c_u"]
+
     data_dict["hivdi_q_uc"][index] = outputs["hivdi_q_uc"][0] if type(
         outputs["hivdi_q_uc"]) is np.ndarray else outputs["hivdi_q_uc"]
+    data_dict["hivdi_q_uc_s_u"][index] = outputs["hivdi_q_uc_s_u"][0] if type(
+        outputs["hivdi_q_uc_s_u"]) is np.ndarray else outputs["hivdi_q_uc_s_u"]
+    data_dict["hivdi_q_uc_u"][index] = outputs["hivdi_q_uc_u"][0] if type(
+        outputs["hivdi_q_uc_u"]) is np.ndarray else outputs["hivdi_q_uc_u"]
+
+
+    # momma
+    data_dict["momma_q_c"][index] = outputs["momma_q_c"][0] if type(
+        outputs["momma_q_c"]) is np.ndarray else outputs["momma_q_c"]
+    data_dict["momma_q_c_s_u"][index] = outputs["momma_q_c_s_u"][0] if type(
+        outputs["momma_q_c_s_u"]) is np.ndarray else outputs["momma_q_c_s_u"]
+    data_dict["momma_q_c_u"][index] = outputs["momma_q_c_u"][0] if type(
+        outputs["momma_q_c_u"]) is np.ndarray else outputs["momma_q_c_u"]
+
     data_dict["momma_q_uc"][index] = outputs["momma_q_uc"][0] if type(
         outputs["momma_q_uc"]) is np.ndarray else outputs["momma_q_uc"]
+    data_dict["momma_q_uc_s_u"][index] = outputs["momma_q_uc_s_u"][0] if type(
+        outputs["momma_q_uc_s_u"]) is np.ndarray else outputs["momma_q_uc_s_u"]
+    data_dict["momma_q_uc_u"][index] = outputs["momma_q_uc_u"][0] if type(
+        outputs["momma_q_uc_u"]) is np.ndarray else outputs["momma_q_uc_u"]
+
+    # sads
+    data_dict["sads_q_c"][index] = outputs["sads_q_c"][0] if type(
+        outputs["sads_q_c"]) is np.ndarray else outputs["sads_q_c"]
+    data_dict["sads_q_c_s_u"][index] = outputs["sads_q_c_s_u"][0] if type(
+        outputs["sads_q_c_s_u"]) is np.ndarray else outputs["sads_q_c_s_u"]
+    data_dict["sads_q_c_u"][index] = outputs["sads_q_c_u"][0] if type(
+        outputs["sads_q_c_u"]) is np.ndarray else outputs["sads_q_c_u"]
+
     data_dict["sads_q_uc"][index] = outputs["sads_q_uc"][0] if type(
         outputs["sads_q_uc"]) is np.ndarray else outputs["sads_q_uc"]
+    data_dict["sads_q_uc_s_u"][index] = outputs["sads_q_uc_s_u"][0] if type(
+        outputs["sads_q_uc_s_u"]) is np.ndarray else outputs["sads_q_uc_s_u"]
+    data_dict["sads_q_uc_u"][index] = outputs["sads_q_uc_u"][0] if type(
+        outputs["sads_q_uc_u"]) is np.ndarray else outputs["sads_q_uc_u"]
+
+    # sic4dvar
+    data_dict["sic4dvar_q_c"][index] = outputs["sic4dvar_q_c"][0] if type(
+        outputs["sic4dvar_q_c"]) is np.ndarray else outputs["sic4dvar_q_c"]
+    data_dict["sic4dvar_q_c_s_u"][index] = outputs["sic4dvar_q_c_s_u"][0] if type(
+        outputs["sic4dvar_q_c_s_u"]) is np.ndarray else outputs["sic4dvar_q_c_s_u"]
+    data_dict["sic4dvar_q_c_u"][index] = outputs["sic4dvar_q_c_u"][0] if type(
+        outputs["sic4dvar_q_c_u"]) is np.ndarray else outputs["sic4dvar_q_c_u"]
+
+    data_dict["sic4dvar_q_uc"][index] = outputs["sic4dvar_q_uc"][0] if type(
+        outputs["sic4dvar_q_uc"]) is np.ndarray else outputs["sic4dvar_q_uc"]
+    data_dict["sic4dvar_q_uc_s_u"][index] = outputs["sic4dvar_q_uc_s_u"][0] if type(
+        outputs["sic4dvar_q_uc_s_u"]) is np.ndarray else outputs["sic4dvar_q_uc_s_u"]
+    data_dict["sic4dvar_q_uc_u"][index] = outputs["sic4dvar_q_uc_u"][0] if type(
+        outputs["sic4dvar_q_uc_u"]) is np.ndarray else outputs["sic4dvar_q_uc_u"]
+
+
+    # consensus
+    data_dict["consensus_q_c"][index] = outputs["consensus_q_c"][0] if type(
+        outputs["consensus_q_c"]) is np.ndarray else outputs["consensus_q_c"]
+
+
     data_dict["consensus_q_uc"][index] = outputs["consensus_q_uc"][0] if type(
         outputs["consensus_q_uc"]) is np.ndarray else outputs["consensus_q_uc"]
 
@@ -195,8 +326,10 @@ def main(input, output, index_to_run):
         reach_data = get_reach_data(reach_json, index_to_run)
         obs = Rivertile(input / "swot" / reach_data["swot"], input_type)
         if flp_source == 'sword':
-            priors = ReachDatabase(input / "sword" / reach_data["sword"].
-                                   replace('.nc', '_moi.nc'),
+            # priors = ReachDatabase(input / "sword" / reach_data["sword"].
+            #                        replace('.nc', '_moi.nc'),
+            #                        reach_data["reach_id"])
+            priors = ReachDatabase(input / "sword" / reach_data["sword"],
                                    reach_data["reach_id"])
             # if dA from timeseries, remove 'area_fit' params, so discharge module
             # won't compute dA again, don't need to set up dA source

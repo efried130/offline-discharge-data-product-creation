@@ -39,7 +39,6 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
 
         if (reach_width > 0 and reach_slope > 0 and metro_Abar+d_x_area >= 0 and
             metro_Abar > 0 and metro_ninf > 0):
-
             metro_n = metro_ninf * (
                 (d_x_area+metro_Abar) / reach_width)**metro_p
             metro_q = (
@@ -188,6 +187,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             sic4dvar_q = (
                 (d_x_area + sic4dvar_Abar)**(5/3) * reach_width ** (-2/3) *
                 (reach_slope)**(1/2)) / sic4dvar_n
+            sic4dvar_width_u = (2 * width_u) / (3 * reach_width)
             sic4dvar_slp_u = slope_u / (2*reach_slope)
             sic4dvar_d_x_area_u = 5*d_x_area_u / (3*(sic4dvar_Abar + d_x_area))
             sic4dvar_r_u = np.sqrt(sic4dvar_width_u**2 + sic4dvar_slp_u ** 2 +
@@ -195,6 +195,8 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             sic4dvar_u = np.sqrt(sic4dvar_r_u**2 + sic4dvar_s_u**2)
         else:
             sic4dvar_q = MISSING_VALUE_FLT
+            sic4dvar_s_u = MISSING_VALUE_FLT
+            sic4dvar_u = MISSING_VALUE_FLT
 
         if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q,
                                       sic4dvar_q]):

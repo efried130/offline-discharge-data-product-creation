@@ -26,48 +26,197 @@ def write_q(output_dir, data_dict):
     nt.units = "time steps"
     nt[:] = list(range(0,data_dict["nt"]))
 
-    d_x_area = out_nc.createVariable("d_x_area", "f8", ("nt",), fill_value=FILL_VALUE)
-    d_x_area[:] = np.nan_to_num(data_dict["d_x_area"], copy=True, nan=FILL_VALUE)
+    d_x_area = out_nc.createVariable("d_x_area", "f8", ("nt",),
+                                     fill_value=FILL_VALUE)
+    d_x_area[:] = np.nan_to_num(data_dict["d_x_area"], copy=True,
+                                nan=FILL_VALUE)
 
     if np.count_nonzero(~np.isnan(data_dict["d_x_area_u"])):
-        d_x_area_u  = out_nc.createVariable("d_x_area_u", "f8", ("nt",), fill_value=FILL_VALUE)
-        d_x_area_u[:] = np.nan_to_num(data_dict["d_x_area_u"], copy=True, nan=FILL_VALUE)
+        d_x_area_u  = out_nc.createVariable("d_x_area_u", "f8", ("nt",),
+                                            fill_value=FILL_VALUE)
+        d_x_area_u[:] = np.nan_to_num(data_dict["d_x_area_u"], copy=True,
+                                      nan=FILL_VALUE)
 
-    metro_q_c  = out_nc.createVariable("metro_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
-    metro_q_c[:] = np.nan_to_num(data_dict["metro_q_c"], copy=True, nan=FILL_VALUE)
+    # metroman constrained
+    metro_q_c  = out_nc.createVariable("metro_q_c", "f8", ("nt",),
+                                       fill_value=FILL_VALUE)
+    metro_q_c[:] = np.nan_to_num(data_dict["metro_q_c"], copy=True,
+                                 nan=FILL_VALUE)
+    metro_q_c_s_u = out_nc.createVariable("metro_q_c_s_u", "f8", ("nt",),
+                                          fill_value=FILL_VALUE)
+    metro_q_c_s_u[:] = np.nan_to_num(data_dict["metro_q_c_s_u"], copy=True,
+                                     nan=FILL_VALUE)
+    metro_q_c_u = out_nc.createVariable("metro_q_c_u", "f8", ("nt",),
+                                          fill_value=FILL_VALUE)
+    metro_q_c_u[:] = np.nan_to_num(data_dict["metro_q_c_u"], copy=True,
+                                     nan=FILL_VALUE)
 
-    bam_q_c  = out_nc.createVariable("bam_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
-    bam_q_c[:] = np.nan_to_num(data_dict["bam_q_c"], copy=True, nan=FILL_VALUE)
+    # bam constrained
+    bam_q_c  = out_nc.createVariable("bam_q_c", "f8", ("nt",),
+                                     fill_value=FILL_VALUE)
+    bam_q_c[:] = np.nan_to_num(data_dict["bam_q_c"], copy=True,
+                               nan=FILL_VALUE)
+    bam_q_c_s_u = out_nc.createVariable("bam_q_c_s_u", "f8", ("nt",),
+                                          fill_value=FILL_VALUE)
+    bam_q_c_s_u[:] = np.nan_to_num(data_dict["bam_q_c_s_u"], copy=True,
+                                     nan=FILL_VALUE)
+    bam_q_c_u = out_nc.createVariable("bam_q_c_u", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    bam_q_c_u[:] = np.nan_to_num(data_dict["bam_q_c_u"], copy=True,
+                                   nan=FILL_VALUE)
 
-    hivdi_q_c  = out_nc.createVariable("hivdi_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
-    hivdi_q_c[:] = np.nan_to_num(data_dict["hivdi_q_c"], copy=True, nan=FILL_VALUE)
+    # hivdi constrained
+    hivdi_q_c  = out_nc.createVariable("hivdi_q_c", "f8", ("nt",),
+                                       fill_value=FILL_VALUE)
+    hivdi_q_c[:] = np.nan_to_num(data_dict["hivdi_q_c"], copy=True,
+                                 nan=FILL_VALUE)
+    hivdi_q_c_s_u = out_nc.createVariable("hivdi_q_c_s_u", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    hivdi_q_c_s_u[:] = np.nan_to_num(data_dict["hivdi_q_c_s_u"], copy=True,
+                                   nan=FILL_VALUE)
+    hivdi_q_c_u = out_nc.createVariable("hivdi_q_c_u", "f8", ("nt",),
+                                      fill_value=FILL_VALUE)
+    hivdi_q_c_u[:] = np.nan_to_num(data_dict["hivdi_q_c_u"], copy=True,
+                                 nan=FILL_VALUE)
 
-    momma_q_c  = out_nc.createVariable("momma_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
-    momma_q_c[:] = np.nan_to_num(data_dict["momma_q_c"], copy=True, nan=FILL_VALUE)
+    # momma constrained
+    momma_q_c  = out_nc.createVariable("momma_q_c", "f8", ("nt",),
+                                       fill_value=FILL_VALUE)
+    momma_q_c[:] = np.nan_to_num(data_dict["momma_q_c"], copy=True,
+                                 nan=FILL_VALUE)
+    momma_q_c_s_u = out_nc.createVariable("momma_q_c_s_u", "f8", ("nt",),
+                                          fill_value=FILL_VALUE)
+    momma_q_c_s_u[:] = np.nan_to_num(data_dict["momma_q_c_s_u"], copy=True,
+                                     nan=FILL_VALUE)
+    momma_q_c_u = out_nc.createVariable("momma_q_c_u", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    momma_q_c_u[:] = np.nan_to_num(data_dict["momma_q_c_u"], copy=True,
+                                   nan=FILL_VALUE)
 
-    sads_q_c  = out_nc.createVariable("sads_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
-    sads_q_c[:] = np.nan_to_num(data_dict["sads_q_c"], copy=True, nan=FILL_VALUE)
+    # sads constrained
+    sads_q_c  = out_nc.createVariable("sads_q_c", "f8", ("nt",),
+                                      fill_value=FILL_VALUE)
+    sads_q_c[:] = np.nan_to_num(data_dict["sads_q_c"], copy=True,
+                                nan=FILL_VALUE)
+    sads_q_c_s_u = out_nc.createVariable("sads_q_c_s_u", "f8", ("nt",),
+                                          fill_value=FILL_VALUE)
+    sads_q_c_s_u[:] = np.nan_to_num(data_dict["sads_q_c_s_u"], copy=True,
+                                     nan=FILL_VALUE)
+    sads_q_c_u = out_nc.createVariable("sads_q_c_u", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    sads_q_c_u[:] = np.nan_to_num(data_dict["sads_q_c_u"], copy=True,
+                                   nan=FILL_VALUE)
 
-    consensus_q_c  = out_nc.createVariable("consensus_q_c", "f8", ("nt",), fill_value=FILL_VALUE)
-    consensus_q_c[:] = np.nan_to_num(data_dict["consensus_q_c"], copy=True, nan=FILL_VALUE)
+    # sic4dvar constrained
+    sic4dvar_q_c = out_nc.createVariable("sic4dvar_q_c", "f8", ("nt",),
+                                     fill_value=FILL_VALUE)
+    sic4dvar_q_c[:] = np.nan_to_num(data_dict["sic4dvar_q_c"], copy=True,
+                                nan=FILL_VALUE)
+    sic4dvar_q_c_s_u = out_nc.createVariable("sic4dvar_q_c_s_u", "f8", ("nt",),
+                                         fill_value=FILL_VALUE)
+    sic4dvar_q_c_s_u[:] = np.nan_to_num(data_dict["sic4dvar_q_c_s_u"],
+                                        copy=True, nan=FILL_VALUE)
+    sic4dvar_q_c_u = out_nc.createVariable("sic4dvar_q_c_u", "f8", ("nt",),
+                                       fill_value=FILL_VALUE)
+    sic4dvar_q_c_u[:] = np.nan_to_num(data_dict["sic4dvar_q_c_u"], copy=True,
+                                  nan=FILL_VALUE)
 
-    metro_q_uc  = out_nc.createVariable("metro_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
-    metro_q_uc[:] = np.nan_to_num(data_dict["metro_q_uc"], copy=True, nan=FILL_VALUE)
+    # consensus constrained
+    consensus_q_c  = out_nc.createVariable("consensus_q_c", "f8", ("nt",),
+                                           fill_value=FILL_VALUE)
+    consensus_q_c[:] = np.nan_to_num(data_dict["consensus_q_c"], copy=True,
+                                     nan=FILL_VALUE)
 
-    bam_q_uc  = out_nc.createVariable("bam_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
-    bam_q_uc[:] = np.nan_to_num(data_dict["bam_q_uc"], copy=True, nan=FILL_VALUE)
+    # metroman unconstrained
+    metro_q_uc  = out_nc.createVariable("metro_q_uc", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    metro_q_uc[:] = np.nan_to_num(data_dict["metro_q_uc"], copy=True,
+                                  nan=FILL_VALUE)
+    metro_q_uc_s_u = out_nc.createVariable("metro_q_uc_s_u", "f8", ("nt",),
+                                          fill_value=FILL_VALUE)
+    metro_q_uc_s_u[:] = np.nan_to_num(data_dict["metro_q_uc_s_u"],
+                                      copy=True,
+                                     nan=FILL_VALUE)
+    metro_q_uc_u = out_nc.createVariable("metro_q_uc_u", "f8", ("nt",),
+                                           fill_value=FILL_VALUE)
+    metro_q_uc_u[:] = np.nan_to_num(data_dict["metro_q_uc_u"], copy=True,
+                                      nan=FILL_VALUE)
 
-    hivdi_q_uc  = out_nc.createVariable("hivdi_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
-    hivdi_q_uc[:] = np.nan_to_num(data_dict["hivdi_q_uc"], copy=True, nan=FILL_VALUE)
+    # bam unconstrained
+    bam_q_uc  = out_nc.createVariable("bam_q_uc", "f8", ("nt",),
+                                      fill_value=FILL_VALUE)
+    bam_q_uc[:] = np.nan_to_num(data_dict["bam_q_uc"], copy=True,
+                                nan=FILL_VALUE)
+    bam_q_uc_s_u = out_nc.createVariable("bam_q_uc_s_u", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    bam_q_uc_s_u[:] = np.nan_to_num(data_dict["bam_q_uc_s_u"], copy=True,
+                                   nan=FILL_VALUE)
+    bam_q_uc_u = out_nc.createVariable("bam_q_uc_u", "f8", ("nt",),
+                                         fill_value=FILL_VALUE)
+    bam_q_uc_u[:] = np.nan_to_num(data_dict["bam_q_uc_u"], copy=True,
+                                    nan=FILL_VALUE)
 
-    momma_q_uc  = out_nc.createVariable("momma_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
-    momma_q_uc[:] = np.nan_to_num(data_dict["momma_q_uc"], copy=True, nan=FILL_VALUE)
+    # hivdi unconstrained
+    hivdi_q_uc  = out_nc.createVariable("hivdi_q_uc", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    hivdi_q_uc[:] = np.nan_to_num(data_dict["hivdi_q_uc"], copy=True,
+                                  nan=FILL_VALUE)
+    hivdi_q_uc_s_u = out_nc.createVariable("hivdi_q_uc_s_u", "f8", ("nt",),
+                                         fill_value=FILL_VALUE)
+    hivdi_q_uc_s_u[:] = np.nan_to_num(data_dict["hivdi_q_uc_s_u"], copy=True,
+                                    nan=FILL_VALUE)
+    hivdi_q_uc_u = out_nc.createVariable("hivdi_q_uc_u", "f8", ("nt",),
+                                       fill_value=FILL_VALUE)
+    hivdi_q_uc_u[:] = np.nan_to_num(data_dict["hivdi_q_uc_u"], copy=True,
+                                  nan=FILL_VALUE)
 
-    sads_q_uc  = out_nc.createVariable("sads_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
-    sads_q_uc[:] = np.nan_to_num(data_dict["sads_q_uc"], copy=True, nan=FILL_VALUE)
+    # momma unconstrained
+    momma_q_uc  = out_nc.createVariable("momma_q_uc", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    momma_q_uc[:] = np.nan_to_num(data_dict["momma_q_uc"], copy=True,
+                                  nan=FILL_VALUE)
+    momma_q_uc_s_u = out_nc.createVariable("momma_q_uc_s_u", "f8", ("nt",),
+                                           fill_value=FILL_VALUE)
+    momma_q_uc_s_u[:] = np.nan_to_num(data_dict["momma_q_uc_s_u"], copy=True,
+                                      nan=FILL_VALUE)
+    momma_q_uc_u = out_nc.createVariable("momma_q_uc_u", "f8", ("nt",),
+                                         fill_value=FILL_VALUE)
+    momma_q_uc_u[:] = np.nan_to_num(data_dict["momma_q_uc_u"], copy=True,
+                                    nan=FILL_VALUE)
 
-    consensus_q_uc  = out_nc.createVariable("consensus_q_uc", "f8", ("nt",), fill_value=FILL_VALUE)
-    consensus_q_uc[:] = np.nan_to_num(data_dict["consensus_q_uc"], copy=True, nan=FILL_VALUE)
+    # sads unconstrained
+    sads_q_uc  = out_nc.createVariable("sads_q_uc", "f8", ("nt",),
+                                       fill_value=FILL_VALUE)
+    sads_q_uc[:] = np.nan_to_num(data_dict["sads_q_uc"], copy=True,
+                                 nan=FILL_VALUE)
+    sads_q_uc_s_u = out_nc.createVariable("sads_q_uc_s_u", "f8", ("nt",),
+                                           fill_value=FILL_VALUE)
+    sads_q_uc_s_u[:] = np.nan_to_num(data_dict["sads_q_uc_s_u"], copy=True,
+                                      nan=FILL_VALUE)
+    sads_q_uc_u = out_nc.createVariable("sads_q_uc_u", "f8", ("nt",),
+                                         fill_value=FILL_VALUE)
+    sads_q_uc_u[:] = np.nan_to_num(data_dict["sads_q_uc_u"], copy=True,
+                                    nan=FILL_VALUE)
+
+    # sic4dvar unconstrained
+    sic4dvar_q_uc = out_nc.createVariable("sic4dvar_q_uc", "f8", ("nt",),
+                                      fill_value=FILL_VALUE)
+    sic4dvar_q_uc[:] = np.nan_to_num(data_dict["sic4dvar_q_uc"], copy=True,
+                                 nan=FILL_VALUE)
+    sic4dvar_q_uc_s_u = out_nc.createVariable("sic4dvar_q_uc_s_u", "f8",
+                                              ("nt",), fill_value=FILL_VALUE)
+    sic4dvar_q_uc_s_u[:] = np.nan_to_num(data_dict["sic4dvar_q_uc_s_u"],
+                                         copy=True,nan=FILL_VALUE)
+    sic4dvar_q_uc_u = out_nc.createVariable("sic4dvar_q_uc_u", "f8", ("nt",),
+                                        fill_value=FILL_VALUE)
+    sic4dvar_q_uc_u[:] = np.nan_to_num(data_dict["sic4dvar_q_uc_u"],
+                                       copy=True, nan=FILL_VALUE)
+
+    # consensus unconstrained
+    consensus_q_uc  = out_nc.createVariable("consensus_q_uc", "f8", ("nt",),
+                                            fill_value=FILL_VALUE)
+    consensus_q_uc[:] = np.nan_to_num(data_dict["consensus_q_uc"], copy=True,
+                                      nan=FILL_VALUE)
 
     out_nc.close()
 
