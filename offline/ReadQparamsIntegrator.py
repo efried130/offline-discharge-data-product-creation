@@ -58,23 +58,28 @@ def extract_alg(alg_dir, r_id, run_type):
     # geobam - to be implemented
     alg_dict[run_type]['BAM'] = {
         "n": int_data["geobam"]["n"][:].filled(np.nan),
-        "Abar": int_data["geobam"]["a0"][:].filled(np.nan)
+        "Abar": int_data["geobam"]["a0"][:].filled(np.nan),
+        "sbQ_rel": int_data["geobam"]["sbQ_rel"][:].filled(np.nan)
     }
     alg_dict[non_run_type]['BAM'] = {
         "n": non_run_array,
-        "Abar": non_run_array
+        "Abar": non_run_array,
+        "sbQ_rel": int_data["geobam"]["sbQ_rel"][:].filled(np.nan)
     }
 
     # hivdi
     alg_dict[run_type]['HiVDI'] = {
         "alpha": int_data["hivdi"]["alpha"][:].filled(np.nan),
         "beta": int_data["hivdi"]["beta"][:].filled(np.nan),
-        "Abar": np.array(int_data["hivdi"]["Abar"][:].filled(np.nan))
+        "Abar": np.array(int_data["hivdi"]["Abar"][:].filled(np.nan)),
+        "sbQ_rel": int_data["hivdi"]["sbQ_rel"][:].filled(np.nan)
+
     }
     alg_dict[non_run_type]['HiVDI'] = {
         "alpha": non_run_array,
         "beta": non_run_array,
-        "Abar": non_run_array
+        "Abar": non_run_array,
+        "sbQ_rel": int_data["hivdi"]["sbQ_rel"][:].filled(np.nan)
     }
 
     # momma
@@ -83,44 +88,52 @@ def extract_alg(alg_dir, r_id, run_type):
         alg_dict[run_type]['MOMMA'] = {
             "B": int_data["momma"]["B"][:].filled(np.nan),
             "H": int_data["momma"]["H"][:].filled(np.nan),
-            "Save": np.nanmean(int_data["momma"]["Save"][:].filled(np.nan))
+            "Save": np.nanmean(int_data["momma"]["Save"][:].filled(np.nan)),
+            "sbQ_rel": int_data["momma"]["sbQ_rel"][:].filled(np.nan)
         }
         alg_dict[non_run_type]['MOMMA'] = {
             "B": non_run_array,
             "H": non_run_array,
-            "Save": non_run_array
+            "Save": non_run_array,
+            "sbQ_rel": int_data["momma"]["sbQ_rel"][:].filled(np.nan)
         }
 
     # sad
     alg_dict[run_type]['SADS'] = {
         "n": int_data["sad"]["n"][:].filled(np.nan),
-        "Abar": np.array(int_data["sad"]["a0"][:].filled(np.nan))
+        "Abar": np.array(int_data["sad"]["a0"][:].filled(np.nan)),
+        "sbQ_rel": int_data["sad"]["sbQ_rel"][:].filled(np.nan)
     }
     alg_dict[non_run_type]['SADS'] = {
         "n": non_run_array,
-        "Abar": non_run_array
+        "Abar": non_run_array,
+        "sbQ_rel": int_data["sad"]["sbQ_rel"][:].filled(np.nan)
     }
 
     # metroman    
     alg_dict[run_type]['MetroMan'] = {
         "ninf": int_data['metroman']["na"][:].filled(np.nan),
         "p": int_data['metroman']["x1"][:].filled(np.nan),
-        "Abar": int_data['metroman']["Abar"][:].filled(np.nan)
+        "Abar": int_data['metroman']["Abar"][:].filled(np.nan),
+        "sbQ_rel": int_data["metroman"]["sbQ_rel"][:].filled(np.nan)
     }
     alg_dict[non_run_type]['MetroMan'] = {
         "ninf": non_run_array,
         "p": non_run_array,
-        "Abar": non_run_array
+        "Abar": non_run_array,
+        "sbQ_rel": int_data["metroman"]["sbQ_rel"][:].filled(np.nan)
     }
 
     # SIC4DVar
     alg_dict[run_type]['SIC4DVar'] = {
         "n": int_data["sic4dvar"]["n"][:].filled(np.nan),
-        "Abar": np.array(int_data["sic4dvar"]["a0"][:].filled(np.nan))
+        "Abar": np.array(int_data["sic4dvar"]["a0"][:].filled(np.nan)),
+        "sbQ_rel": int_data["sic4dvar"]["sbQ_rel"][:].filled(np.nan)
     }
     alg_dict[non_run_type]['SIC4DVar'] = {
         "n": non_run_array,
-        "Abar": non_run_array
+        "Abar": non_run_array,
+        "sbQ_rel": int_data["sic4dvar"]["sbQ_rel"][:].filled(np.nan)
     }
 
     int_data.close()

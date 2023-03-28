@@ -2,6 +2,8 @@
 Module for computing discharge for river reaches
 copied from RiverObs/src/SWOTRiver
 """
+import pdb
+
 import numpy as np
 
 MISSING_VALUE_INT4 = -999
@@ -35,7 +37,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
         metro_ninf = models['MetroMan']['ninf']
         metro_Abar = models['MetroMan']['Abar']
         metro_p = models['MetroMan']['p']
-        metro_s_u = 0.4 #models['MetroMan']['sbQ_rel']
+        metro_s_u = models['MetroMan']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and metro_Abar+d_x_area >= 0 and
             metro_Abar > 0 and metro_ninf > 0):
@@ -67,11 +69,10 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
             metro_s_u = MISSING_VALUE_FLT
             metro_u = MISSING_VALUE_FLT
 
-
         # 3: Compute BAM model
         bam_n = models['BAM']['n']
         bam_Abar = models['BAM']['Abar']
-        bam_s_u = 0.4 #models['BAM']['sbQ_rel']
+        bam_s_u = models['BAM']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and bam_Abar+d_x_area >= 0 and
             bam_Abar > 0 and bam_n > 0):
@@ -94,7 +95,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
         hivdi_Abar = models['HiVDI']['Abar']
         hivdi_alpha = models['HiVDI']['alpha']
         hivdi_beta = models['HiVDI']['beta']
-        hivdi_s_u = 0.4 #models['HiVDI']['sbQ_rel']
+        hivdi_s_u = models['HiVDI']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and hivdi_Abar+d_x_area >= 0 and
             hivdi_Abar > 0 and hivdi_alpha > 0):
@@ -120,7 +121,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
         momma_H = models['MOMMA']['H']
         momma_Save = models['MOMMA']['Save']
         momma_r = 2
-        momma_s_u = 0.4 #models['MOMMA']['sbQ_rel']
+        momma_s_u = models['MOMMA']['sbQ_rel'].item()
 
         if momma_Save > 0 and momma_H > momma_B and reach_height > momma_B:
             momma_nb = 0.11 * momma_Save**0.18
@@ -158,7 +159,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
         # 6: Compute SADS model
         sads_Abar = models['SADS']['Abar']
         sads_n = models['SADS']['n']
-        sads_s_u = 0.4 #models['SADS']['sbQ_rel']
+        sads_s_u = models['SADS']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and sads_Abar+d_x_area >= 0 and
             sads_Abar > 0 and sads_n > 0):
@@ -179,7 +180,7 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area,
         # 7: Compute SIC4DVar model
         sic4dvar_n = models['SIC4DVar']['n']
         sic4dvar_Abar = models['SIC4DVar']['Abar']
-        sic4dvar_s_u = 0.4  # models['SIC4DVar']['sbQ_rel']
+        sic4dvar_s_u = models['SIC4DVar']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and sic4dvar_Abar+d_x_area >= 0
                 and sic4dvar_Abar > 0 and sic4dvar_n > 0):

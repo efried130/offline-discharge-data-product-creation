@@ -17,14 +17,21 @@ from offline.discharge import compute, empty_q
 from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
-# Constants
-INPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/input/")
-FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/moi")
+#Constants constrained
+INPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input")
+FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_moi_update")
 #FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/flpe")
-OUTPUT = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/output")
+OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_output")
 # SWORD dir for single_pass run
-SWORD = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/input/sword/na_sword_v11.nc")
+SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input/sword/na_sword_v11_moi.nc")
 
+# Constants unconstrained
+# INPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/unconstrained/mnt/input")
+# #FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/unconstrained/mnt/moi")
+# FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/unconstrained/mnt/unconstrained_moi_update")
+# OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/unconstrained/mnt/unconstrained_output")
+# # SWORD dir for single_pass run
+# SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/unconstrained/mnt/input/sword/na_sword_v11_moi.nc")
 
 # SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
 # INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
@@ -184,7 +191,7 @@ def populate_data_array(data_dict, outputs, index):
     # metroman
     data_dict["metro_q_c"][index] = outputs["metro_q_c"][0] if type(
         outputs["metro_q_c"]) is np.ndarray else outputs["metro_q_c"]
-    data_dict["metro_q_c_s_u"][index] = outputs["metro_q_c_s_u"][0] if type(
+    data_dict["metro_q_c_s_u"][index] = outputs["metro_q_c_s_u"].item() if type(
         outputs["metro_q_c_s_u"]) is np.ndarray else outputs["metro_q_c_s_u"]
     data_dict["metro_q_c_u"][index] = outputs["metro_q_c_u"][0] if type(
         outputs["metro_q_c_u"]) is np.ndarray else outputs["metro_q_c_u"]
@@ -195,8 +202,6 @@ def populate_data_array(data_dict, outputs, index):
         outputs["metro_q_uc_s_u"]) is np.ndarray else outputs["metro_q_uc_s_u"]
     data_dict["metro_q_uc_u"][index] = outputs["metro_q_uc_u"][0] if type(
         outputs["metro_q_uc_u"]) is np.ndarray else outputs["metro_q_uc_u"]
-
-
 
     # bam
     data_dict["bam_q_c"][index] = outputs["bam_q_c"][0] if type(
@@ -227,7 +232,6 @@ def populate_data_array(data_dict, outputs, index):
         outputs["hivdi_q_uc_s_u"]) is np.ndarray else outputs["hivdi_q_uc_s_u"]
     data_dict["hivdi_q_uc_u"][index] = outputs["hivdi_q_uc_u"][0] if type(
         outputs["hivdi_q_uc_u"]) is np.ndarray else outputs["hivdi_q_uc_u"]
-
 
     # momma
     data_dict["momma_q_c"][index] = outputs["momma_q_c"][0] if type(
