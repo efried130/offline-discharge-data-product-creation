@@ -21,7 +21,7 @@ from offline.WriteQ2Shp import write_q2shp
 INPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input")
 FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_moi_update")
 #FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/flpe")
-OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_output")
+OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_output_apr27")
 # SWORD dir for single_pass run
 SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input/sword/na_sword_v11_moi.nc")
 
@@ -33,10 +33,12 @@ SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/
 # # SWORD dir for single_pass run
 # SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/unconstrained/mnt/input/sword/na_sword_v11_moi.nc")
 
-# SWORD =  the path to SWORD is hard-coded below, where it says'priors = ReachDatabase(input / "sword"...'
-# INPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs')  #must agree with input_type
-# FLPE_DIR = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_inputs/moi')
-# OUTPUT = Path('/Users/mtd/Analysis/SWOT/Discharge/Confluence/paper_debug/offline_outputs')
+DSCHG_KEYS = [
+    'dschg' + a + b + c for a in ['_', '_g']
+    for b in ['m', 'b', 'h', 'o', 's', 'i', 'c']
+    for c in ['', '_u', '_q', 'sf']]
+DSCHG_KEYS += ['dschg_q_b', 'dschg_gq_b', 'd_x_area', 'd_x_area_u']
+
 
 def get_reach_data(reach_json, index_to_run):
     """Extract and return a dictionary of reach identifier, SoS and SWORD files.
@@ -69,52 +71,14 @@ def initialize_data_dict(nt, time_steps, reach_id):
     time_steps: np.ndarray
         Array of dates
     """
-
-    return ({
-        "d_x_area": np.repeat(np.nan, nt),
-        "d_x_area_u": np.repeat(np.nan, nt),
-        "metro_q_c": np.repeat(np.nan, nt),
-        "metro_q_uc": np.repeat(np.nan, nt),
-        "metro_q_c_s_u": np.repeat(np.nan, nt),
-        "metro_q_c_u": np.repeat(np.nan, nt),
-        "metro_q_uc_s_u": np.repeat(np.nan, nt),
-        "metro_q_uc_u": np.repeat(np.nan, nt),
-        "bam_q_c": np.repeat(np.nan, nt),
-        "bam_q_uc": np.repeat(np.nan, nt),
-        "bam_q_c_s_u": np.repeat(np.nan, nt),
-        "bam_q_c_u": np.repeat(np.nan, nt),
-        "bam_q_uc_s_u": np.repeat(np.nan, nt),
-        "bam_q_uc_u": np.repeat(np.nan, nt),
-        "hivdi_q_c": np.repeat(np.nan, nt),
-        "hivdi_q_uc": np.repeat(np.nan, nt),
-        "hivdi_q_c_s_u": np.repeat(np.nan, nt),
-        "hivdi_q_c_u": np.repeat(np.nan, nt),
-        "hivdi_q_uc_s_u": np.repeat(np.nan, nt),
-        "hivdi_q_uc_u": np.repeat(np.nan, nt),
-        "momma_q_c": np.repeat(np.nan, nt),
-        "momma_q_uc": np.repeat(np.nan, nt),
-        "momma_q_c_s_u": np.repeat(np.nan, nt),
-        "momma_q_c_u": np.repeat(np.nan, nt),
-        "momma_q_uc_s_u": np.repeat(np.nan, nt),
-        "momma_q_uc_u": np.repeat(np.nan, nt),
-        "sads_q_c": np.repeat(np.nan, nt),
-        "sads_q_uc": np.repeat(np.nan, nt),
-        "sads_q_c_s_u": np.repeat(np.nan, nt),
-        "sads_q_c_u": np.repeat(np.nan, nt),
-        "sads_q_uc_s_u": np.repeat(np.nan, nt),
-        "sads_q_uc_u": np.repeat(np.nan, nt),
-        "sic4dvar_q_c": np.repeat(np.nan, nt),
-        "sic4dvar_q_uc": np.repeat(np.nan, nt),
-        "sic4dvar_q_c_s_u": np.repeat(np.nan, nt),
-        "sic4dvar_q_c_u": np.repeat(np.nan, nt),
-        "sic4dvar_q_uc_s_u": np.repeat(np.nan, nt),
-        "sic4dvar_q_uc_u": np.repeat(np.nan, nt),
-        "consensus_q_c": np.repeat(np.nan, nt),
-        "consensus_q_uc": np.repeat(np.nan, nt),
-        "nt": nt,
-        "reach_id": reach_id,
-        "time_steps": time_steps
-    })
+    data_dict = {}
+    # iterating through the keys of key list
+    for key in DSCHG_KEYS:
+        data_dict[key] = np.repeat(np.nan, nt)
+    data_dict['nt'] = nt
+    data_dict['reach_id'] = reach_id
+    data_dict['time_steps'] = time_steps
+    return data_dict
 
 
 def initialize_data_dict_sp(rch_n):
@@ -124,50 +88,12 @@ def initialize_data_dict_sp(rch_n):
     rch_n: int
         Number of reaches in shapefile
     """
-
-    return ({
-        "d_x_area": np.repeat(np.nan, rch_n),
-        "d_x_area_u": np.repeat(np.nan, rch_n),
-        "metro_q_c": np.repeat(np.nan, rch_n),
-        "metro_q_uc": np.repeat(np.nan, rch_n),
-        "metro_q_c_s_u": np.repeat(np.nan, rch_n),
-        "metro_q_c_u": np.repeat(np.nan, rch_n),
-        "metro_q_uc_s_u": np.repeat(np.nan, rch_n),
-        "metro_q_uc_u": np.repeat(np.nan, rch_n),
-        "bam_q_c": np.repeat(np.nan, rch_n),
-        "bam_q_uc": np.repeat(np.nan, rch_n),
-        "bam_q_c_s_u": np.repeat(np.nan, rch_n),
-        "bam_q_c_u": np.repeat(np.nan, rch_n),
-        "bam_q_uc_s_u": np.repeat(np.nan, rch_n),
-        "bam_q_uc_u": np.repeat(np.nan, rch_n),
-        "hivdi_q_c": np.repeat(np.nan, rch_n),
-        "hivdi_q_uc": np.repeat(np.nan, rch_n),
-        "hivdi_q_c_s_u": np.repeat(np.nan, rch_n),
-        "hivdi_q_c_u": np.repeat(np.nan, rch_n),
-        "hivdi_q_uc_s_u": np.repeat(np.nan, rch_n),
-        "hivdi_q_uc_u": np.repeat(np.nan, rch_n),
-        "momma_q_c": np.repeat(np.nan, rch_n),
-        "momma_q_uc": np.repeat(np.nan, rch_n),
-        "momma_q_c_s_u": np.repeat(np.nan, rch_n),
-        "momma_q_c_u": np.repeat(np.nan, rch_n),
-        "momma_q_uc_s_u": np.repeat(np.nan, rch_n),
-        "momma_q_uc_u": np.repeat(np.nan, rch_n),
-        "sads_q_c": np.repeat(np.nan, rch_n),
-        "sads_q_uc": np.repeat(np.nan, rch_n),
-        "sads_q_c_s_u": np.repeat(np.nan, rch_n),
-        "sads_q_c_u": np.repeat(np.nan, rch_n),
-        "sads_q_uc_s_u": np.repeat(np.nan, rch_n),
-        "sads_q_uc_u": np.repeat(np.nan, rch_n),
-        "sic4dvar_q_c": np.repeat(np.nan, rch_n),
-        "sic4dvar_q_uc": np.repeat(np.nan, rch_n),
-        "sic4dvar_q_c_s_u": np.repeat(np.nan, rch_n),
-        "sic4dvar_q_c_u": np.repeat(np.nan, rch_n),
-        "sic4dvar_q_uc_s_u": np.repeat(np.nan, rch_n),
-        "sic4dvar_q_uc_u": np.repeat(np.nan, rch_n),
-        "consensus_q_c": np.repeat(np.nan, rch_n),
-        "consensus_q_uc": np.repeat(np.nan, rch_n),
-        "reach_id": np.repeat(np.nan, rch_n)
-    })
+    data_dict = {}
+    # iterating through the keys of key list
+    for key in DSCHG_KEYS:
+        data_dict[key] = np.repeat(np.nan, rch_n)
+    data_dict['reach_id'] = np.repeat(np.nan, rch_n)
+    return data_dict
 
 
 def populate_data_array(data_dict, outputs, index):
@@ -184,108 +110,13 @@ def populate_data_array(data_dict, outputs, index):
     """
 
     # Insert data
-    # d_x_are
     data_dict["d_x_area"][index] = outputs["d_x_area"]
     data_dict["d_x_area_u"][index] = outputs[
         "d_x_area_u"] if "d_x_area_u" in outputs.keys() else None
-    # metroman
-    data_dict["metro_q_c"][index] = outputs["metro_q_c"][0] if type(
-        outputs["metro_q_c"]) is np.ndarray else outputs["metro_q_c"]
-    data_dict["metro_q_c_s_u"][index] = outputs["metro_q_c_s_u"].item() if type(
-        outputs["metro_q_c_s_u"]) is np.ndarray else outputs["metro_q_c_s_u"]
-    data_dict["metro_q_c_u"][index] = outputs["metro_q_c_u"][0] if type(
-        outputs["metro_q_c_u"]) is np.ndarray else outputs["metro_q_c_u"]
 
-    data_dict["metro_q_uc"][index] = outputs["metro_q_uc"][0] if type(
-        outputs["metro_q_uc"]) is np.ndarray else outputs["metro_q_uc"]
-    data_dict["metro_q_uc_s_u"][index] = outputs["metro_q_uc_s_u"][0] if type(
-        outputs["metro_q_uc_s_u"]) is np.ndarray else outputs["metro_q_uc_s_u"]
-    data_dict["metro_q_uc_u"][index] = outputs["metro_q_uc_u"][0] if type(
-        outputs["metro_q_uc_u"]) is np.ndarray else outputs["metro_q_uc_u"]
-
-    # bam
-    data_dict["bam_q_c"][index] = outputs["bam_q_c"][0] if type(
-        outputs["bam_q_c"]) is np.ndarray else outputs["bam_q_c"]
-    data_dict["bam_q_c_s_u"][index] = outputs["bam_q_c_s_u"][0] if type(
-        outputs["bam_q_c_s_u"]) is np.ndarray else outputs["bam_q_c_s_u"]
-    data_dict["bam_q_c_u"][index] = outputs["bam_q_c_u"][0] if type(
-        outputs["bam_q_c_u"]) is np.ndarray else outputs["bam_q_c_u"]
-
-    data_dict["bam_q_uc"][index] = outputs["bam_q_uc"][0] if type(
-        outputs["bam_q_uc"]) is np.ndarray else outputs["bam_q_uc"]
-    data_dict["bam_q_uc_s_u"][index] = outputs["bam_q_uc_s_u"][0] if type(
-        outputs["bam_q_uc_s_u"]) is np.ndarray else outputs["bam_q_uc_s_u"]
-    data_dict["bam_q_uc_u"][index] = outputs["bam_q_uc_u"][0] if type(
-        outputs["bam_q_uc_u"]) is np.ndarray else outputs["bam_q_uc_u"]
-
-    # hivdi
-    data_dict["hivdi_q_c"][index] = outputs["hivdi_q_c"][0] if type(
-        outputs["hivdi_q_c"]) is np.ndarray else outputs["hivdi_q_c"]
-    data_dict["hivdi_q_c_s_u"][index] = outputs["hivdi_q_c_s_u"][0] if type(
-        outputs["hivdi_q_c_s_u"]) is np.ndarray else outputs["hivdi_q_c_s_u"]
-    data_dict["hivdi_q_c_u"][index] = outputs["hivdi_q_c_u"][0] if type(
-        outputs["hivdi_q_c_u"]) is np.ndarray else outputs["hivdi_q_c_u"]
-
-    data_dict["hivdi_q_uc"][index] = outputs["hivdi_q_uc"][0] if type(
-        outputs["hivdi_q_uc"]) is np.ndarray else outputs["hivdi_q_uc"]
-    data_dict["hivdi_q_uc_s_u"][index] = outputs["hivdi_q_uc_s_u"][0] if type(
-        outputs["hivdi_q_uc_s_u"]) is np.ndarray else outputs["hivdi_q_uc_s_u"]
-    data_dict["hivdi_q_uc_u"][index] = outputs["hivdi_q_uc_u"][0] if type(
-        outputs["hivdi_q_uc_u"]) is np.ndarray else outputs["hivdi_q_uc_u"]
-
-    # momma
-    data_dict["momma_q_c"][index] = outputs["momma_q_c"][0] if type(
-        outputs["momma_q_c"]) is np.ndarray else outputs["momma_q_c"]
-    data_dict["momma_q_c_s_u"][index] = outputs["momma_q_c_s_u"][0] if type(
-        outputs["momma_q_c_s_u"]) is np.ndarray else outputs["momma_q_c_s_u"]
-    data_dict["momma_q_c_u"][index] = outputs["momma_q_c_u"][0] if type(
-        outputs["momma_q_c_u"]) is np.ndarray else outputs["momma_q_c_u"]
-
-    data_dict["momma_q_uc"][index] = outputs["momma_q_uc"][0] if type(
-        outputs["momma_q_uc"]) is np.ndarray else outputs["momma_q_uc"]
-    data_dict["momma_q_uc_s_u"][index] = outputs["momma_q_uc_s_u"][0] if type(
-        outputs["momma_q_uc_s_u"]) is np.ndarray else outputs["momma_q_uc_s_u"]
-    data_dict["momma_q_uc_u"][index] = outputs["momma_q_uc_u"][0] if type(
-        outputs["momma_q_uc_u"]) is np.ndarray else outputs["momma_q_uc_u"]
-
-    # sads
-    data_dict["sads_q_c"][index] = outputs["sads_q_c"][0] if type(
-        outputs["sads_q_c"]) is np.ndarray else outputs["sads_q_c"]
-    data_dict["sads_q_c_s_u"][index] = outputs["sads_q_c_s_u"][0] if type(
-        outputs["sads_q_c_s_u"]) is np.ndarray else outputs["sads_q_c_s_u"]
-    data_dict["sads_q_c_u"][index] = outputs["sads_q_c_u"][0] if type(
-        outputs["sads_q_c_u"]) is np.ndarray else outputs["sads_q_c_u"]
-
-    data_dict["sads_q_uc"][index] = outputs["sads_q_uc"][0] if type(
-        outputs["sads_q_uc"]) is np.ndarray else outputs["sads_q_uc"]
-    data_dict["sads_q_uc_s_u"][index] = outputs["sads_q_uc_s_u"][0] if type(
-        outputs["sads_q_uc_s_u"]) is np.ndarray else outputs["sads_q_uc_s_u"]
-    data_dict["sads_q_uc_u"][index] = outputs["sads_q_uc_u"][0] if type(
-        outputs["sads_q_uc_u"]) is np.ndarray else outputs["sads_q_uc_u"]
-
-    # sic4dvar
-    data_dict["sic4dvar_q_c"][index] = outputs["sic4dvar_q_c"][0] if type(
-        outputs["sic4dvar_q_c"]) is np.ndarray else outputs["sic4dvar_q_c"]
-    data_dict["sic4dvar_q_c_s_u"][index] = outputs["sic4dvar_q_c_s_u"][0] if type(
-        outputs["sic4dvar_q_c_s_u"]) is np.ndarray else outputs["sic4dvar_q_c_s_u"]
-    data_dict["sic4dvar_q_c_u"][index] = outputs["sic4dvar_q_c_u"][0] if type(
-        outputs["sic4dvar_q_c_u"]) is np.ndarray else outputs["sic4dvar_q_c_u"]
-
-    data_dict["sic4dvar_q_uc"][index] = outputs["sic4dvar_q_uc"][0] if type(
-        outputs["sic4dvar_q_uc"]) is np.ndarray else outputs["sic4dvar_q_uc"]
-    data_dict["sic4dvar_q_uc_s_u"][index] = outputs["sic4dvar_q_uc_s_u"][0] if type(
-        outputs["sic4dvar_q_uc_s_u"]) is np.ndarray else outputs["sic4dvar_q_uc_s_u"]
-    data_dict["sic4dvar_q_uc_u"][index] = outputs["sic4dvar_q_uc_u"][0] if type(
-        outputs["sic4dvar_q_uc_u"]) is np.ndarray else outputs["sic4dvar_q_uc_u"]
-
-
-    # consensus
-    data_dict["consensus_q_c"][index] = outputs["consensus_q_c"][0] if type(
-        outputs["consensus_q_c"]) is np.ndarray else outputs["consensus_q_c"]
-
-
-    data_dict["consensus_q_uc"][index] = outputs["consensus_q_uc"][0] if type(
-        outputs["consensus_q_uc"]) is np.ndarray else outputs["consensus_q_uc"]
+    for key in DSCHG_KEYS:
+        data_dict[key][index] = outputs[key][0] if type(
+            outputs[key]) is np.ndarray else outputs[key]
 
     # Convert missing values to NaN values
     for k, v in data_dict.items():
@@ -330,14 +161,11 @@ def main(input, output, index_to_run):
         reach_data = get_reach_data(reach_json, index_to_run)
         obs = Rivertile(input / "swot" / reach_data["swot"], input_type)
         if flp_source == 'sword':
-            # priors = ReachDatabase(input / "sword" / reach_data["sword"].
-            #                        replace('.nc', '_moi.nc'),
-            #                        reach_data["reach_id"])
             priors = ReachDatabase(input / "sword" / reach_data["sword"],
                                    reach_data["reach_id"])
             # if dA from timeseries, remove 'area_fit' params, so discharge module
             # won't compute dA again, don't need to set up dA source
-            del priors['area_fit']
+            del priors['area_fits']
         elif flp_source == 'integrator':
             priors = {"discharge_models": extract_alg(FLPE_DIR,
                                                       reach_data["reach_id"],
@@ -349,11 +177,10 @@ def main(input, output, index_to_run):
         data_dict = initialize_data_dict(obs["nt"], obs["time_steps"],
                                          reach_data["reach_id"])
         for i in range(obs["nt"]):
-            outputs = compute(priors, obs['height'][i], obs["width"][i],
-                              obs["slope"][i], obs["d_x_area"][i],
-                              obs["wse_u"][i],
-                              obs["width_u"][i], obs["slope_u"][i],
-                              obs["d_x_area_u"][i])
+            outputs = compute(priors, obs["height"][i], obs["wse_u"][i],
+                              obs["width"][i], obs["width_u"][i],
+                              obs["slope"][i], obs["slope_u"][i],
+                              obs["d_x_area"][i], obs["d_x_area_u"][i])
             populate_data_array(data_dict, outputs, i)
 
         # Output discharge model values
@@ -384,11 +211,11 @@ def main(input, output, index_to_run):
                     priors["area_fit"]["fit_coeffs"] = [[[2], [1], [2]]]
                     priors["area_fit"]["med_flow_area"] = 100
                     # remove above after testing
-                    outputs = compute(priors, obs['height'][j],
-                                      obs['width'][j], obs['slope'][j],
-                                      obs['d_x_area'][j], obs['wse_u'][j],
-                                      obs['width_u'][j], obs['slope_u'][j],
-                                      obs['d_x_area_u'][j])
+                    outputs = compute(priors,
+                                      obs["height"][j], obs["wse_u"][j],
+                                      obs["width"][j], obs["width_u"][j],
+                                      obs["slope"][j], obs["slope_u"][j],
+                                      obs['d_x_area'][j], obs['d_x_area_u'][j])
                 else:
                     outputs = empty_q()
                 populate_data_array(data_dict, outputs, j)

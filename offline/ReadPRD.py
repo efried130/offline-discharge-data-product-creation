@@ -10,7 +10,7 @@ def ReachDatabase(reach_db_path, rch):
 
     reaches = dataset['reaches']['reach_id'][:]
     reach_ind = np.where(reaches == rch)
-    reach = {'area_fit': {},
+    reach = {'area_fits': {},
              'discharge_models': {'unconstrained': {'MetroMan': {},
                                                     'BAM': {},
                                                     'HiVDI': {},
@@ -39,17 +39,17 @@ def ReachDatabase(reach_db_path, rch):
 
     # area fits
     for key in area_fit_key:
-        reach['area_fit'][key] = np.array(
+        reach['area_fits'][key] = np.array(
             dataset['reaches']['area_fits'][key][reach_ind])
 
-    reach['area_fit']['fit_coeffs'] = np.reshape(
+    reach['area_fits']['fit_coeffs'] = np.reshape(
         np.array(
             dataset['reaches']['area_fits']['fit_coeffs'])[:, :, reach_ind],
         (2, 3, 1))
-    reach['area_fit']['h_break'] = np.reshape(
+    reach['area_fits']['h_break'] = np.reshape(
         np.array(
             dataset['reaches']['area_fits']['h_break'])[:, reach_ind], (4, 1))
-    reach['area_fit']['w_break'] = np.reshape(
+    reach['area_fits']['w_break'] = np.reshape(
         np.array(
             dataset['reaches']['area_fits']['w_break'])[:, reach_ind], (4, 1))
 
