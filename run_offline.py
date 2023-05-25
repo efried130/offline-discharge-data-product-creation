@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 # Third-party imports
 import numpy as np
+import glob
 
 # Local imports
 from offline.ReadOb import Rivertile
@@ -18,11 +19,15 @@ from offline.WriteQ import write_q
 from offline.WriteQ2Shp import write_q2shp
 
 #Constants constrained
-INPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input")
-FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_moi_update")
+# INPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input")
+INPUT = os.path.join('mnt', 'data', 'input')
+FLPE_DIR = os.path.join('mnt', 'data', 'moi')
+# FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_moi_update")
 #FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/flpe")
-OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_output_apr27")
+# OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_output_apr27")
+OUTPUT = os.path.join('mnt', 'data', 'output')
 # SWORD dir for single_pass run
+# read in reach json
 SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input/sword/na_sword_v11_moi.nc")
 
 # Constants unconstrained
@@ -150,7 +155,7 @@ def main(input, output, index_to_run):
         input_type = sys.argv[2]
         flp_source = sys.argv[3] # options are 'sword' or 'integrator
         if input_type == 'timeseries':
-            reach_json = input.joinpath(sys.argv[4])
+            reach_json = os.path.join(INPUT, sys.argv[4])
     except IndexError:
         run_type = None
         if input_type == 'timeseries':
@@ -159,9 +164,9 @@ def main(input, output, index_to_run):
     # Input timeseries data
     if input_type == 'timeseries':
         reach_data = get_reach_data(reach_json, index_to_run)
-        obs = Rivertile(input / "swot" / reach_data["swot"], input_type)
+        obs = Rivertile(os.path.join(input , "swot" , reach_data["swot"]), input_type)
         if flp_source == 'sword':
-            priors = ReachDatabase(input / "sword" / reach_data["sword"],
+            priors = ReachDatabase(os.path.join(input , "sword" , reach_data["sword"]),
                                    reach_data["reach_id"])
             # if dA from timeseries, remove 'area_fit' params, so discharge module
             # won't compute dA again, don't need to set up dA source

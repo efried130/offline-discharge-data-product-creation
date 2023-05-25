@@ -1,6 +1,7 @@
 # Third-party imports
 from netCDF4 import Dataset
 import numpy as np
+import os
 
 FILL_VALUE = -999999999999
 DSCHG_KEYS = [
@@ -21,7 +22,7 @@ def write_q(output_dir, data_dict):
     """
 
     # NetCDF Dataset
-    out_nc = Dataset(output_dir / f"{data_dict['reach_id']}_offline.nc", 'w', 
+    out_nc = Dataset(os.path.join(output_dir , f"{data_dict['reach_id']}_offline.nc"), 'w', 
         format="NETCDF4")
     out_nc.reach_id = data_dict["reach_id"]
 
