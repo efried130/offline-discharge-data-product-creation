@@ -153,18 +153,19 @@ def main(input, output, index_to_run):
     try:
         run_type = sys.argv[1]
         input_type = sys.argv[2]
-        flp_source = sys.argv[3] # options are 'sword' or 'integrator
+        flp_source = sys.argv[3] # options are 'sword' or 'integrator'
         if input_type == 'timeseries':
             reach_json = os.path.join(INPUT, sys.argv[4])
     except IndexError:
         run_type = None
         if input_type == 'timeseries':
-            reach_json = input.joinpath("reaches.json")
+            reach_json = os.path.join(INPUT, "reaches.json")
 
     # Input timeseries data
     if input_type == 'timeseries':
         reach_data = get_reach_data(reach_json, index_to_run)
         obs = Rivertile(os.path.join(input , "swot" , reach_data["swot"]), input_type)
+        print(flp_source)
         if flp_source == 'sword':
             priors = ReachDatabase(os.path.join(input , "sword" , reach_data["sword"]),
                                    reach_data["reach_id"])
@@ -176,7 +177,7 @@ def main(input, output, index_to_run):
                                                       reach_data["reach_id"],
                                                       run_type)}
         else:
-            sys.exit('Warning: flp source not valid')
+            sys.exit('Warning: flp source not valid, exiting')
 
         # Compute discharge
         data_dict = initialize_data_dict(obs["nt"], obs["time_steps"],
