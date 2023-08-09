@@ -3,75 +3,89 @@ Module for computing discharge for river reaches
 copied from RiverObs/src/SWOTRiver
 """
 import numpy as np
+import warnings
 
 MISSING_VALUE_INT4 = -999
 MISSING_VALUE_INT9 = -99999999
 MISSING_VALUE_FLT = -999999999999
 
-def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, height_u, width_u, slope_u, d_x_area_u):
+
+def compute(reach, reach_height, reach_height_u, reach_width, reach_width_u,
+            reach_slope, reach_slope_u, reach_d_x_area, reach_d_x_area_u):
     """Computes the discharge models"""
-    
-    slope_u = 1.7*1e-5 # use this for now
-    
-    if 'area_fit' in reach.keys():
-        #print('computing d_x_area')
-        area_fit_outputs = area(
-            reach_height, reach_width, reach['area_fit'])
-
-        d_x_area = area_fit_outputs[0]
-
-        #print(d_x_area)
+    if 'area_fit' in reach.keys() and reach_d_x_area is None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            d_x_area, d_x_area_u, width_c, width_c_u, height_c, height_c_u = area(
+                reach_height, reach_height_u, reach_width, reach_width_u,
+                reach['area_fits'])
 
         if d_x_area < -10000000 or np.ma.is_masked(d_x_area):
             d_x_area = MISSING_VALUE_FLT
 
-        d_x_area_u = area_fit_outputs[3]
         if d_x_area_u < 0 or np.ma.is_masked(d_x_area_u):
             d_x_area_u = MISSING_VALUE_FLT
-
-        outputs = {'d_x_area': d_x_area, 'd_x_area_u': d_x_area_u}
-     
     else:
         d_x_area = reach_d_x_area
-        outputs = {'d_x_area': d_x_area, 'd_x_area_u': d_x_area_u}
-           
+        d_x_area_u = reach_d_x_area_u
+        # todo: add real values for constrained h & w and their uncertainties.
+        width_c = np.nan
+        width_c_u = np.nan
+        height_c = np.nan
+        height_c_u = np.nan
+
+    outputs = {'d_x_area': d_x_area, 'd_x_area_u': d_x_area_u}
+
     for key, models in reach['discharge_models'].items():
 
         metro_ninf = models['MetroMan']['ninf']
         metro_Abar = models['MetroMan']['Abar']
         metro_p = models['MetroMan']['p']
-        metro_s_u = 0.4 #models['MetroMan']['sbQ_rel']  
+        metro_s_rel_u = models['MetroMan']['sbQ_rel'].item()
 
-        if (reach_width > 0 and reach_slope > 0 and metro_Abar+d_x_area >= 0 and
-            metro_Abar > 0 and metro_ninf > 0):
-            
+        if (reach_width > 0 and reach_slope > 0 and metro_Abar+d_x_area >= 0
+                and metro_Abar > 0 and metro_ninf > 0):
+
             metro_n = metro_ninf * (
                 (d_x_area+metro_Abar) / reach_width)**metro_p
-            metro_q = (
-                (d_x_area+metro_Abar)**(5/3) * reach_width**(-2/3) *
-                (reach_slope)**(1/2)) / metro_n
-            
-            A = metro_Abar + d_x_area
-            cd = metro_p * (A/reach_width)
-            metro_width_u = ((5*metro_p**2 * reach_width)/(3*A**2 * \
-                      ((metro_p*reach_width/A)**2 + 1)) - \
-                      1/(3*reach_width) ) * width_u
-            metro_d_x_area_u = 5/(3*A)*((1+cd**-2)**-1 + 1) * d_x_area_u
-            metro_slp_u = slope_u/(2*reach_slope)
-            
-            metro_r_u = np.sqrt(metro_width_u**2 + metro_d_x_area_u**2 + metro_slp_u**2)
-            metro_u = np.sqrt(metro_r_u**2 + metro_s_u**2)
+            # todo: add p_low_slp from sword
+            if 'p_low_slp' in reach.keys():
+                if reach['p_low_slp']:
+                    # Low slope flag is TRUE in PRD. Use different flow law.
+                    metro_q = metro_n * (reach_height - metro_Abar)**metro_p
+                    # todo: random error uncertainty placeholder
+                    metro_r_u = MISSING_VALUE_FLT
+            else:
+                metro_q = (
+                    (d_x_area+metro_Abar)**(5/3) * reach_width**(-2/3) *
+                    reach_slope**(1/2)) / metro_n
+                # metroman opt 4 uncertainties
+                metro_width_u = (
+                        ((metro_p - (2/3)) / reach_width) * reach_width_u)
+                metro_d_x_area_u = ((5/3) - metro_p) / (
+                        metro_Abar + d_x_area) * d_x_area_u
+                metro_slp_u = reach_slope_u / (2 * reach_slope)
+                metro_r_u = np.sqrt(
+                    metro_width_u**2 + metro_d_x_area_u**2 + metro_slp_u**2)
+            if 0 <= metro_s_rel_u < 1:
+                metro_s_u, metro_u = discharge_uncertainty(metro_s_rel_u,
+                                                           metro_r_u)
+            else:
+                metro_s_rel_u = MISSING_VALUE_FLT
+                metro_s_u = MISSING_VALUE_FLT
+                metro_u = MISSING_VALUE_FLT
+
         else:
             metro_q = MISSING_VALUE_FLT
-            metro_u = MISSING_VALUE_FLT
+            metro_s_rel_u = MISSING_VALUE_FLT
             metro_s_u = MISSING_VALUE_FLT
+            metro_r_u = MISSING_VALUE_FLT
             metro_u = MISSING_VALUE_FLT
-            
 
         # 3: Compute BAM model
         bam_n = models['BAM']['n']
         bam_Abar = models['BAM']['Abar']
-        bam_s_u = 0.4 #models['BAM']['sbQ_rel']   
+        bam_s_rel_u = models['BAM']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and bam_Abar+d_x_area >= 0 and
             bam_Abar > 0 and bam_n > 0):
@@ -79,39 +93,58 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, heigh
             bam_q = (
                 (d_x_area+bam_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) / bam_n
-            bam_width_u = (2*width_u)/(3*reach_width)
-            bam_slp_u = slope_u/(2*reach_slope)
-            bam_d_x_area_u = 5*d_x_area_u / (3*(bam_Abar + d_x_area))
-            bam_r_u = np.sqrt(bam_width_u**2 + bam_slp_u**2 + bam_d_x_area_u**2)
-            bam_u = np.sqrt(bam_r_u**2 + bam_s_u**2) 
+            bam_width_u = (2 * reach_width_u) / (3 * reach_width)
+            bam_slp_u = reach_slope_u / (2 * reach_slope)
+            bam_d_x_area_u = 5 * d_x_area_u / (3 * (bam_Abar + d_x_area))
+            bam_r_u = np.sqrt(bam_width_u**2 + bam_slp_u**2 +
+                              bam_d_x_area_u**2)
+            if 0 <= bam_s_rel_u < 1:
+                bam_s_u, bam_u = discharge_uncertainty(bam_s_rel_u, bam_r_u)
+            else:
+                bam_s_rel_u = MISSING_VALUE_FLT
+                bam_s_u = MISSING_VALUE_FLT
+                bam_u = MISSING_VALUE_FLT
+
         else:
             bam_q = MISSING_VALUE_FLT
-            bam_u = MISSING_VALUE_FLT
+            bam_s_rel_u = MISSING_VALUE_FLT
             bam_s_u = MISSING_VALUE_FLT
+            bam_r_u = MISSING_VALUE_FLT
             bam_u = MISSING_VALUE_FLT
 
         # 4: Compute HiVDI model
         hivdi_Abar = models['HiVDI']['Abar']
         hivdi_alpha = models['HiVDI']['alpha']
         hivdi_beta = models['HiVDI']['beta']
-        hivdi_s_u = 0.4 #models['HiVDI']['sbQ_rel']   
+        hivdi_s_rel_u = models['HiVDI']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and hivdi_Abar+d_x_area >= 0 and
             hivdi_Abar > 0 and hivdi_alpha > 0):
+
             hivdi_n_inv = hivdi_alpha * (
                 (d_x_area+hivdi_Abar)/reach_width)**hivdi_beta
             hivdi_q = (
                 (d_x_area+hivdi_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) * hivdi_n_inv
-            hivdi_width_u = width_u * (2/3 + hivdi_beta) / reach_width
-            hivdi_slp_u = slope_u/(2*reach_slope)
-            hivdi_d_x_area_u = d_x_area_u * (5/3 + hivdi_beta) / (hivdi_Abar + d_x_area)
-            hivdi_r_u = np.sqrt(hivdi_width_u**2 + hivdi_slp_u**2 + hivdi_d_x_area_u**2) 
-            hivdi_u = np.sqrt(hivdi_r_u**2 + hivdi_s_u**2) 
+            hivdi_width_u = reach_width_u * (2/3 + hivdi_beta) / reach_width
+            hivdi_slp_u = reach_slope_u / (2 * reach_slope)
+            hivdi_d_x_area_u = (
+                    d_x_area_u * (5/3 + hivdi_beta) / (hivdi_Abar + d_x_area))
+            hivdi_r_u = np.sqrt(hivdi_width_u**2 + hivdi_slp_u**2 +
+                                hivdi_d_x_area_u**2)
+            if 0 <= hivdi_s_rel_u < 1:
+                hivdi_s_u, hivdi_u = discharge_uncertainty(hivdi_s_rel_u,
+                                                           hivdi_r_u)
+            else:
+                hivdi_s_rel_u = MISSING_VALUE_FLT
+                hivdi_s_u = MISSING_VALUE_FLT
+                hivdi_u = MISSING_VALUE_FLT
+
         else:
             hivdi_q = MISSING_VALUE_FLT
-            hivdi_u = MISSING_VALUE_FLT
+            hivdi_s_rel_u = MISSING_VALUE_FLT
             hivdi_s_u = MISSING_VALUE_FLT
+            hivdi_r_u = MISSING_VALUE_FLT
             hivdi_u = MISSING_VALUE_FLT
 
         # 5: Compute MOMMA model
@@ -119,15 +152,13 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, heigh
         momma_H = models['MOMMA']['H']
         momma_Save = models['MOMMA']['Save']
         momma_r = 2
-        momma_s_u = 0.4 #models['MOMMA']['sbQ_rel']  
-        
-        if momma_Save > 0 and momma_H > momma_B and reach_height > momma_B:
-            momma_nb = 0.11 * momma_Save**0.18
+        momma_s_rel_u = models['MOMMA']['sbQ_rel'].item()
+
+        momma_nb = 0.11 * momma_Save**0.18
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
             log_factor = np.log10((momma_H-momma_B)/(reach_height-momma_B))
-        else:
-            momma_nb = MISSING_VALUE_FLT
-            log_factor = MISSING_VALUE_FLT
-            
+
         if reach_height <= momma_H:
             momma_n = momma_nb*(1+log_factor)
             log_check = log_factor > -1
@@ -136,93 +167,220 @@ def compute(reach, reach_height, reach_width, reach_slope, reach_d_x_area, heigh
             log_check = log_factor < 1
 
         if (reach_width > 0 and reach_slope > 0 and momma_n > 0 and
-            momma_Save > 0 and momma_H > momma_B and momma_nb > 0 and log_check):
+            momma_Save > 0 and momma_H > momma_B and momma_nb > 0
+                and log_check):
 
             momma_q = (
                 ((reach_height - momma_B)*(momma_r/(1+momma_r)))**(5/3) *
                 reach_width * reach_slope**(1/2)) / momma_n
-            
-            momma_width_u = width_u/reach_width
-            momma_slp_u = slope_u/(2*reach_slope)
-            momma_wse_u = 5*height_u/(3*(reach_height - momma_B))
-            momma_r_u = np.sqrt(momma_width_u**2 + momma_slp_u**2 + momma_wse_u**2)
-            momma_u = np.sqrt(momma_r_u**2 + momma_s_u**2) 
-        
+            momma_width_u = reach_width_u / reach_width
+            momma_slp_u = reach_slope_u / (2 * reach_slope)
+            momma_wse_u = 5 * reach_height_u / (3 * (reach_height - momma_B))
+            momma_r_u = np.sqrt(momma_width_u**2 + momma_slp_u**2 +
+                                momma_wse_u**2)
+            if 0 <= momma_s_rel_u < 1:
+                momma_s_u, momma_u = discharge_uncertainty(momma_s_rel_u,
+                                                           momma_r_u)
+            else:
+                momma_s_rel_u = MISSING_VALUE_FLT
+                momma_s_u = MISSING_VALUE_FLT
+                momma_u = MISSING_VALUE_FLT
+
         else:
             momma_q = MISSING_VALUE_FLT
-            momma_u = MISSING_VALUE_FLT
-            momma_s_u = MISSING_VALUE_FLT 
+            momma_s_rel_u = MISSING_VALUE_FLT
+            momma_s_u = MISSING_VALUE_FLT
+            momma_r_u = MISSING_VALUE_FLT
             momma_u = MISSING_VALUE_FLT
 
         # 6: Compute SADS model
         sads_Abar = models['SADS']['Abar']
         sads_n = models['SADS']['n']
-        sads_s_u = 0.4 #models['SADS']['sbQ_rel']   
+        sads_s_rel_u = models['SADS']['sbQ_rel'].item()
 
         if (reach_width > 0 and reach_slope > 0 and sads_Abar+d_x_area >= 0 and
             sads_Abar > 0 and sads_n > 0):
+
             sads_q = (
                 (d_x_area+sads_Abar)**(5/3) * reach_width**(-2/3) *
                 (reach_slope)**(1/2)) / sads_n
-            sads_width_u = (2*width_u)/(3*reach_width)
-            sads_slp_u = slope_u/(2*reach_slope)
-            sads_d_x_area_u = 5*d_x_area_u / (3*(sads_Abar + d_x_area))
-            sads_r_u = np.sqrt(sads_width_u**2 + sads_slp_u**2 + sads_d_x_area_u**2)
-            sads_u = np.sqrt(sads_r_u**2 + sads_s_u**2) 
+            sads_width_u = (2 * reach_width_u) / (3 * reach_width)
+            sads_slp_u = reach_slope_u / (2 * reach_slope)
+            sads_d_x_area_u = 5 * d_x_area_u / (3 * (sads_Abar + d_x_area))
+            sads_r_u = np.sqrt(sads_width_u**2 + sads_slp_u**2 +
+                               sads_d_x_area_u**2)
+            if 0 <= sads_s_rel_u < 1:
+                sads_s_u, sads_u = discharge_uncertainty(sads_s_rel_u,
+                                                         sads_r_u)
+            else:
+                sads_s_rel_u = MISSING_VALUE_FLT
+                sads_s_u = MISSING_VALUE_FLT
+                sads_u = MISSING_VALUE_FLT
+
         else:
             sads_q = MISSING_VALUE_FLT
-            sads_u = MISSING_VALUE_FLT
+            sads_s_rel_u = MISSING_VALUE_FLT
             sads_s_u = MISSING_VALUE_FLT
+            sads_r_u = MISSING_VALUE_FLT
             sads_u = MISSING_VALUE_FLT
-            
-        if MISSING_VALUE_FLT not in ([metro_q, bam_q, hivdi_q, momma_q, sads_q]):
-            consensus_q = np.median([metro_q, bam_q, hivdi_q, momma_q, sads_q])
+
+        # 7: Compute SIC4DVar model
+        sic4dvar_n = models['SIC4DVar']['n']
+        sic4dvar_Abar = models['SIC4DVar']['Abar']
+        sic4dvar_s_rel_u = models['SIC4DVar']['sbQ_rel'].item()
+
+        if (reach_width > 0 and reach_slope > 0 and sic4dvar_Abar+d_x_area >= 0
+                and sic4dvar_Abar > 0 and sic4dvar_n > 0):
+
+            sic4dvar_q = (
+                (d_x_area+sic4dvar_Abar)**(5/3) * reach_width**(-2/3) *
+                (reach_slope)**(1/2)) / sic4dvar_n
+            sic4dvar_width_u = (2 * reach_width_u) / (3 * reach_width)
+            sic4dvar_slp_u = reach_slope_u / (2 * reach_slope)
+            sic4dvar_d_x_area_u = 5 * d_x_area_u / (
+                        3 * (sic4dvar_Abar + d_x_area))
+            sic4dvar_r_u = np.sqrt(
+                sic4dvar_width_u**2 + sic4dvar_slp_u**2 +
+                sic4dvar_d_x_area_u**2)
+            if 0 <= sic4dvar_s_rel_u < 1:
+                sic4dvar_s_u, sic4dvar_u = discharge_uncertainty(
+                    sic4dvar_s_rel_u, sic4dvar_r_u)
+            else:
+                sic4dvar_s_rel_u = MISSING_VALUE_FLT
+                sic4dvar_s_u = MISSING_VALUE_FLT
+                sic4dvar_u = MISSING_VALUE_FLT
+
+        else:
+            sic4dvar_q = MISSING_VALUE_FLT
+            sic4dvar_s_rel_u = MISSING_VALUE_FLT
+            sic4dvar_s_u = MISSING_VALUE_FLT
+            sic4dvar_r_u = MISSING_VALUE_FLT
+            sic4dvar_u = MISSING_VALUE_FLT
+
+        # 8: Compute consensus discharge and its uncertainties
+        q_results = np.ma.masked_values([metro_q, bam_q, hivdi_q, momma_q,
+                                         sads_q, sic4dvar_q],
+                                        MISSING_VALUE_FLT)
+        q_r_u = np.ma.masked_values([metro_r_u, bam_r_u, hivdi_r_u, momma_r_u,
+                                     sads_r_u, sic4dvar_r_u],
+                                    MISSING_VALUE_FLT)
+        q_s_u = np.ma.masked_values([metro_s_u, bam_s_u, hivdi_s_u,
+                                     momma_s_u, sads_s_u, sic4dvar_s_u],
+                                    MISSING_VALUE_FLT)
+        nalgo = np.sum(q_results.mask == False)
+        if nalgo >= 1:
+            consensus_q = np.median(q_results)
+            consensus_s_u = np.sqrt(np.pi / 2 * np.mean(q_s_u)**2 / nalgo)
+            consensus_u = np.sqrt(consensus_s_u**2 + np.median(q_r_u)**2)
+            consensus_s_rel_u = consensus_s_u / consensus_u
         else:
             consensus_q = MISSING_VALUE_FLT
+            consensus_s_rel_u = MISSING_VALUE_FLT
+            consensus_u = MISSING_VALUE_FLT
 
+        # Note we have no algorithm yet for _q (qual)
+        # discharge vars, they are set to missing_value.
         if key == 'constrained':
-            outputs['metro_q_c'] = metro_q
-            outputs['metro_q_c_s_u'] = metro_s_u
-            outputs['metro_q_c_u'] = metro_u
-            outputs['bam_q_c'] = bam_q
-            outputs['bam_q_c_s_u'] = bam_s_u
-            outputs['bam_q_c_u'] = bam_u
-            outputs['hivdi_q_c'] = hivdi_q
-            outputs['hivdi_q_c_s_u'] = hivdi_s_u
-            outputs['hivdi_q_c_u'] = hivdi_u
-            outputs['momma_q_c'] = momma_q
-            outputs['momma_q_c_s_u'] = momma_s_u
-            outputs['momma_q_c_u'] = momma_u
-            outputs['sads_q_c'] = sads_q
-            outputs['sads_q_c_s_u'] = sads_s_u
-            outputs['sads_q_c_u'] = sads_u
-            outputs['consensus_q_c'] = consensus_q
+            outputs['dschg_gm'] = metro_q
+            outputs['dschg_gm_u'] = metro_u
+            outputs['dschg_gmsf'] = metro_s_rel_u
+            outputs['dschg_gm_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_gb'] = bam_q
+            outputs['dschg_gb_u'] = bam_u
+            outputs['dschg_gbsf'] = bam_s_rel_u
+            outputs['dschg_gb_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_gh'] = hivdi_q
+            outputs['dschg_gh_u'] = hivdi_u
+            outputs['dschg_ghsf'] = hivdi_s_rel_u
+            outputs['dschg_gh_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_go'] = momma_q
+            outputs['dschg_go_u'] = momma_u
+            outputs['dschg_gosf'] = momma_s_rel_u
+            outputs['dschg_go_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_gs'] = sads_q
+            outputs['dschg_gs_u'] = sads_u
+            outputs['dschg_gssf'] = sads_s_rel_u
+            outputs['dschg_gs_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_gi'] = sic4dvar_q
+            outputs['dschg_gi_u'] = sic4dvar_u
+            outputs['dschg_gisf'] = sic4dvar_s_rel_u
+            outputs['dschg_gi_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_gc'] = consensus_q
+            outputs['dschg_gc_u'] = consensus_u
+            outputs['dschg_gcsf'] = consensus_s_rel_u
+            outputs['dschg_gc_q'] = MISSING_VALUE_INT4
+
         elif key == 'unconstrained':
-            outputs['metro_q_uc'] = metro_q
-            outputs['metro_q_uc_s_u'] = metro_s_u
-            outputs['metro_q_uc_u'] = metro_u
-            outputs['bam_q_uc'] = bam_q
-            outputs['bam_q_uc_s_u'] = bam_s_u
-            outputs['bam_q_uc_u'] = bam_u
-            outputs['hivdi_q_uc'] = hivdi_q
-            outputs['hivdi_q_uc_s_u'] = hivdi_s_u
-            outputs['hivdi_q_uc_u'] = hivdi_u
-            outputs['momma_q_uc'] = momma_q
-            outputs['momma_q_uc_s_u'] = momma_s_u
-            outputs['momma_q_uc_u'] = momma_u
-            outputs['sads_q_uc'] = sads_q
-            outputs['sads_q_uc_s_u'] = sads_s_u
-            outputs['sads_q_uc_u'] = sads_u
-            outputs['consensus_q_uc'] = consensus_q
+            outputs['dschg_m'] = metro_q
+            outputs['dschg_m_u'] = metro_u
+            outputs['dschg_msf'] = metro_s_rel_u
+            outputs['dschg_m_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_b'] = bam_q
+            outputs['dschg_b_u'] = bam_u
+            outputs['dschg_bsf'] = bam_s_rel_u
+            outputs['dschg_b_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_h'] = hivdi_q
+            outputs['dschg_h_u'] = hivdi_u
+            outputs['dschg_hsf'] = hivdi_s_rel_u
+            outputs['dschg_h_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_o'] = momma_q
+            outputs['dschg_o_u'] = momma_u
+            outputs['dschg_osf'] = momma_s_rel_u
+            outputs['dschg_o_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_s'] = sads_q
+            outputs['dschg_s_u'] = sads_u
+            outputs['dschg_ssf'] = sads_s_rel_u
+            outputs['dschg_s_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_i'] = sic4dvar_q
+            outputs['dschg_i_u'] = sic4dvar_u
+            outputs['dschg_isf'] = sic4dvar_s_rel_u
+            outputs['dschg_i_q'] = MISSING_VALUE_INT4
+
+            outputs['dschg_c'] = consensus_q
+            outputs['dschg_c_u'] = consensus_u
+            outputs['dschg_csf'] = consensus_s_rel_u
+            outputs['dschg_c_q'] = MISSING_VALUE_INT4
+
+    # Set dschg_q_b and dschg_gq_b (no algorithm implemented yet)
+    outputs['dschg_q_b'] = MISSING_VALUE_INT9
+    outputs['dschg_gq_b'] = MISSING_VALUE_INT9
+
+    # populate the constrained height and width outputs
+    if np.isnan(width_c) or np.isnan(height_c):
+        outputs['width_c'] = MISSING_VALUE_FLT
+        outputs['width_c_u'] = MISSING_VALUE_FLT
+        outputs['height_c'] = MISSING_VALUE_FLT
+        outputs['height_c_u'] = MISSING_VALUE_FLT
+    else:
+        outputs['width_c'] = width_c
+        outputs['width_c_u'] = width_c_u
+        outputs['height_c'] = height_c
+        outputs['height_c_u'] = height_c_u
+
     return outputs
 
-def area(observed_height, observed_width, area_fits):
+
+def area(observed_height, observed_height_u, observed_width, observed_width_u,
+         area_fits):
     """
     Provides a nicer interface for _area wrapping up the unpacking of prior
     db area_fits into CalculatedAEIV.m inputs.
 
     observed_height - swot observed height for this reach
+    observed_height_u - swot observed height uncertainty for this reach
     observed_width - swot observed width for this reach
+    observed_width_u - swot observed width uncertainty for this reach
     area_fits - dictionary of things extracted from prior DB
     """
     height_breakpoints = np.squeeze(area_fits['h_break'])
@@ -244,33 +402,39 @@ def area(observed_height, observed_width, area_fits):
     num_obs = np.squeeze(area_fits['h_w_nobs'])
 
     return _area(
-        observed_height, observed_width, height_breakpoints, poly_fits,
-        area_median_flow, fit_width_std**2, fit_height_std**2,
-        cov_height_width, num_obs)
+        observed_height, observed_height_u, observed_width, observed_width_u,
+        height_breakpoints, poly_fits, area_median_flow, fit_width_std**2,
+        fit_height_std**2, cov_height_width, num_obs)
+
 
 def _area(
-    observed_height, observed_width, height_breakpoints, poly_fits,
-    area_median_flow, fit_width_var, fit_height_var, cov_height_width,
-    num_obs):
+    observed_height, observed_height_u, observed_width, observed_width_u,
+        height_breakpoints, poly_fits, area_median_flow, fit_width_var,
+        fit_height_var, cov_height_width, num_obs):
     """
     Computes cross-sectional area from fit, based on CalculatedAEIV.m at
     https://github.com/mikedurand/SWOTAprimeCalcs
 
+    Inputs
     observed_height - swot observed height for this reach
+    observed_height_u - swot observed height uncertainty for this reach
     observed_width - swot observed width for this reach
+    observed_width_u - swot observed width uncertainty for this reach
     height_breakpoints - boundaries for fits in height
     poly_fits - polynominal coeffs for the fits
     area_median_flow - cross-sectional area at median flow
     fit_width_var - width error std**2
     fit_height_var - height error std**2
     cov_height_width - covariance matrix for width / height
+
+    Outputs
+    delta_area_hat - estimated cross-sectional area
+    dAunc - uncertainty in the cross-sectional area
+    observed_width_hat - estimated width using height-width fit
+    observed_width_hat_u - observed_width_hat uncertainty
+    observed_height_hat - estimated height using height-width fit
+    observed_height_hat_u - observed_height_hat uncertainty
     """
-
-    #print('observed_height=',observed_height)
-    #print('height_breakpoints=',height_breakpoints)
-    #print('poly_fits=',poly_fits)
-    #print('area_median_flow=',area_median_flow)
-
     poly_ints = np.array([np.polyint(item) for item in poly_fits])
 
     height_fits_ll = height_breakpoints[0:-1]
@@ -285,7 +449,9 @@ def _area(
 
     if ifit.size == 0:
         observed_height_hat = np.nan
+        observed_height_hat_u = np.nan
         observed_width_hat = observed_width
+        observed_width_hat_u = observed_width_u
         if observed_height > height_breakpoints.max():
             delta_area_hat = (
                 np.polyval(poly_ints[-1], height_breakpoints[-1]) -
@@ -308,8 +474,9 @@ def _area(
         ifit = ifit[0][0]
         if low_height_snr:
             observed_height_hat = observed_height
+            observed_height_hat_u = observed_height_u
         else:
-            observed_height_hat = estimate_height(
+            observed_height_hat, observed_height_hat_u = estimate_height(
                 observed_width, observed_height, poly_fits[ifit],
                 fit_width_var, fit_height_var)
 
@@ -319,15 +486,17 @@ def _area(
 
         if ifit_hat.size > 0:
             ifit = ifit_hat[0][0]
-            observed_height_hat = estimate_height(
+            observed_height_hat, observed_height_hat_u = estimate_height(
                 observed_width, observed_height, poly_fits[ifit],
                 fit_width_var, fit_height_var)
 
         if low_height_snr:
             observed_width_hat = observed_width
+            observed_width_hat_u = observed_width_u
         else:
             observed_width_hat = np.polyval(
                 poly_fits[ifit], observed_height_hat)
+            observed_width_hat_u = observed_height_hat_u * poly_fit[ifit][0]
 
         delta_area_hat = 0
         for poly_int, height_ll, height_ul in zip(
@@ -349,9 +518,11 @@ def _area(
                 poly_fits[ifit], height_fits_ul[ifit]) / np.sqrt(
                 2 * poly_fits[ifit][0]))
             sigma = np.sqrt(poly_fits[ifit][0]/2) * np.sqrt(fit_height_var)
-            dAunc = np.sqrt(4*mu**2*sigma**2 + 2*sigma**4);
+            dAunc = np.sqrt(4*mu**2*sigma**2 + 2*sigma**4)
 
-    return delta_area_hat, observed_width_hat, observed_height_hat, dAunc
+    return delta_area_hat, dAunc, observed_width_hat, observed_width_hat_u,\
+           observed_height_hat, observed_height_hat_u
+
 
 def estimate_height(observed_width, observed_height, poly_fit, fit_width_var,
                     fit_height_var):
@@ -360,43 +531,38 @@ def estimate_height(observed_width, observed_height, poly_fit, fit_width_var,
     sigma_vv = fit_width_var + poly_fit[0]**2 * fit_height_var
     sigma_uv = -poly_fit[0] * fit_height_var
     v = observed_width - poly_fit[1] - poly_fit[0] * observed_height
-    return observed_height - v * sigma_uv/sigma_vv
+    observed_height_hat = observed_height - v * sigma_uv/sigma_vv
+    observed_height_hat_u = np.sqrt(fit_height_var - sigma_uv**2/sigma_vv)
+    return observed_height_hat, observed_height_hat_u
+
+
+def discharge_uncertainty(sbq_rel_u, q_random_u):
+    """
+    Compute systematic and total discharge uncertainties.
+
+    Inputs:
+    sbq_rel_u - Fractional systematic uncertainty in discharge.
+    q_random_u - Random uncertainty in discharge.
+
+    Outputs:
+    syst_u - Systematic discharge uncertainty.
+    tot_u - Total discharge uncertainty.
+    """
+    syst_u = sbq_rel_u * q_random_u / np.sqrt(1 - sbq_rel_u**2)
+    tot_u = np.sqrt(q_random_u**2 + syst_u**2)
+    return syst_u, tot_u
+
 
 def empty_q():
     """write empty outputs for reaches without valid q params"""
+    DSCHG_KEYS = [
+        'dschg' + a + b + c for a in ['_', '_g']
+        for b in ['m', 'b', 'h', 'o', 's', 'i', 'c']
+        for c in ['', '_u', '_q', 'sf']]
+    DSCHG_KEYS += ['dschg_q_b', 'dschg_gq_b']
     outputs = {}
-    outputs['d_x_area'] = MISSING_VALUE_FLT 
+    for key in DSCHG_KEYS:
+        outputs['key'] = MISSING_VALUE_FLT
+    outputs['d_x_area'] = MISSING_VALUE_FLT
     outputs['d_x_area_u'] = MISSING_VALUE_FLT
-    outputs['metro_q_uc'] = MISSING_VALUE_FLT
-    outputs['metro_q_uc_s_u'] = MISSING_VALUE_FLT
-    outputs['metro_q_uc_u'] = MISSING_VALUE_FLT
-    outputs['metro_q_c'] = MISSING_VALUE_FLT
-    outputs['metro_q_c_s_u'] = MISSING_VALUE_FLT
-    outputs['metro_q_c_u'] = MISSING_VALUE_FLT
-    outputs['bam_q_uc'] = MISSING_VALUE_FLT
-    outputs['bam_q_uc_s_u'] = MISSING_VALUE_FLT
-    outputs['bam_q_uc_u'] = MISSING_VALUE_FLT
-    outputs['bam_q_c'] = MISSING_VALUE_FLT
-    outputs['bam_q_c_s_u'] = MISSING_VALUE_FLT
-    outputs['bam_q_c_u'] = MISSING_VALUE_FLT
-    outputs['hivdi_q_uc'] = MISSING_VALUE_FLT
-    outputs['hivdi_q_uc_s_u'] = MISSING_VALUE_FLT
-    outputs['hivdi_q_uc_u'] = MISSING_VALUE_FLT
-    outputs['hivdi_q_c'] = MISSING_VALUE_FLT
-    outputs['hivdi_q_c_s_u'] = MISSING_VALUE_FLT
-    outputs['hivdi_q_c_u'] = MISSING_VALUE_FLT
-    outputs['momma_q_uc'] = MISSING_VALUE_FLT
-    outputs['momma_q_uc_s_u'] = MISSING_VALUE_FLT
-    outputs['momma_q_uc_u'] = MISSING_VALUE_FLT
-    outputs['momma_q_c'] = MISSING_VALUE_FLT
-    outputs['momma_q_c_s_u'] = MISSING_VALUE_FLT
-    outputs['momma_q_c_u'] = MISSING_VALUE_FLT
-    outputs['sads_q_uc'] = MISSING_VALUE_FLT
-    outputs['sads_q_uc_s_u'] = MISSING_VALUE_FLT
-    outputs['sads_q_uc_u'] = MISSING_VALUE_FLT
-    outputs['sads_q_c'] = MISSING_VALUE_FLT
-    outputs['sads_q_c_s_u'] = MISSING_VALUE_FLT
-    outputs['sads_q_c_u'] = MISSING_VALUE_FLT
-    outputs['consensus_q_uc'] = MISSING_VALUE_FLT
-    outputs['consensus_q_c'] = MISSING_VALUE_FLT
     return outputs
