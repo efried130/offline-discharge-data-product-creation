@@ -32,7 +32,7 @@ def extract_alg(alg_dir, r_id, run_type):
         else "unconstrained"
     non_run_array = np.array([-9999], dtype=float)
     int_file = os.path.join(alg_dir, f'{int(r_id)}_integrator.nc')
-
+    int_file = str(int_file)
     int_data = Dataset(int_file, 'r', format="NETCDF4")
 
     # note constrained/unconstrained not implemented yet
