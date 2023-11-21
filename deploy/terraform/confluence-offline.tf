@@ -4,7 +4,7 @@ resource "aws_batch_job_definition" "generate_batch_jd_offline" {
   type                  = "container"
   container_properties  = <<CONTAINER_PROPERTIES
   {
-    "image": "${local.account_id}.dkr.ecr.us-west-2.amazonaws.com/offline",
+    "image": "${local.account_id}.dkr.ecr.us-west-2.amazonaws.com/${var.prefix}-offline",
     "executionRoleArn": "${data.aws_iam_role.exe_role.arn}",
     "jobRoleArn": "${data.aws_iam_role.job_role.arn}",
     "fargatePlatformConfiguration": { "platformVersion": "LATEST" },
@@ -65,4 +65,5 @@ resource "aws_batch_job_definition" "generate_batch_jd_offline" {
    retry_strategy {
     attempts = 3
   }
+  tags = { "job_definition": "${var.prefix}-offline" }
 }
