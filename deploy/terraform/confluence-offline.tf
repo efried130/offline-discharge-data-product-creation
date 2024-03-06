@@ -30,6 +30,11 @@ resource "aws_batch_job_definition" "generate_batch_jd_offline" {
         "readOnly": true
       },
       {
+        "sourceVolume": "moi",
+        "containerPath": "/mnt/data/moi",
+        "readOnly": true
+      },
+      {
         "sourceVolume": "offline",
         "containerPath": "/mnt/data/output",
         "readOnly": false
@@ -47,6 +52,13 @@ resource "aws_batch_job_definition" "generate_batch_jd_offline" {
         "name": "flpe",
         "efsVolumeConfiguration": {
           "fileSystemId": "${data.aws_efs_file_system.aws_efs_flpe.file_system_id}",
+          "rootDirectory": "/"
+        }
+      },
+      {
+        "name": "moi",
+        "efsVolumeConfiguration": {
+          "fileSystemId": "${data.aws_efs_file_system.aws_efs_moi.file_system_id}",
           "rootDirectory": "/"
         }
       },
