@@ -20,12 +20,12 @@ from offline.WriteQ2Shp import write_q2shp
 
 #Constants constrained
 # INPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input")
-INPUT = os.path.join('mnt', 'data', 'input')
-FLPE_DIR = os.path.join('mnt', 'data', 'moi')
+INPUT = os.path.join('/mnt', 'data', 'input')
+FLPE_DIR = os.path.join('/mnt', 'data', 'moi')
 # FLPE_DIR = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_moi_update")
 #FLPE_DIR = Path("/Users/rwei/Documents/confluence/OneDrive_1_9-23-2022/offline_inputs/mnt/flpe")
 # OUTPUT = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/constrained_output_apr27")
-OUTPUT = os.path.join('mnt', 'data', 'output')
+OUTPUT = os.path.join('/mnt', 'data', 'output')
 # SWORD dir for single_pass run
 # read in reach json
 SWORD = Path("/Users/rwei/Documents/confluence/offline_data_mar/constrained/mnt/input/sword/na_sword_v11_moi.nc")
