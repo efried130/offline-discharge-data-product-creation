@@ -293,14 +293,15 @@ def get_gb_data(gb, group, pre, logged):
         boolean indicating if result is logged
     """
 
-    chain1 = gb[group][f"{pre}1"][:].filled(np.nan)
-    chain2 = gb[group][f"{pre}2"][:].filled(np.nan)
-    chain3 = gb[group][f"{pre}3"][:].filled(np.nan)
-    chains = np.vstack((chain1, chain2, chain3))
+    # chain1 = gb[group][f"{pre}1"][:].filled(np.nan)
+    # chain2 = gb[group][f"{pre}2"][:].filled(np.nan)
+    # chain3 = gb[group][f"{pre}3"][:].filled(np.nan)
+    # chains = np.vstack((chain1, chain2, chain3))
+    q = gb[group][pre][:].filled(np.nan)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         if logged:
-            return np.exp(np.nanmean(chains, axis=0))
+            return np.exp(np.nanmean(q, axis=0))
         else:
-            return np.nanmean(chains, axis=0)
+            return np.nanmean(q, axis=0)
