@@ -57,14 +57,14 @@ def extract_alg(alg_dir, r_id, run_type):
 
     # geobam - to be implemented
     alg_dict[run_type]['BAM'] = {
-        "n": int_data["geobam"]["n"][:].filled(np.nan),
-        "Abar": int_data["geobam"]["a0"][:].filled(np.nan),
-        "sbQ_rel": int_data["geobam"]["sbQ_rel"][:].filled(np.nan)
+        "n": int_data["neobam"]["n"][:].filled(np.nan),
+        "Abar": int_data["neobam"]["a0"][:].filled(np.nan),
+        "sbQ_rel": int_data["neobam"]["sbQ_rel"][:].filled(np.nan)
     }
     alg_dict[non_run_type]['BAM'] = {
         "n": non_run_array,
         "Abar": non_run_array,
-        "sbQ_rel": int_data["geobam"]["sbQ_rel"][:].filled(np.nan)
+        "sbQ_rel": int_data["neobam"]["sbQ_rel"][:].filled(np.nan)
     }
 
     # hivdi
